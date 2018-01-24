@@ -2,7 +2,7 @@
 This is the github repository for all projects in EENG348/CPSC338.
 
 ## Projects
-..* TBA 
+  * TBA 
 
 ## Authors
 

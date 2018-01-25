@@ -1,0 +1,58 @@
+#include "testasm.h"
+
+
+/* the attribute "used" tells the compiler to not inline this function */
+__attribute__((used))
+unsigned int testasm(unsigned char a, unsigned char b) {
+  unsigned int out;
+
+  asm volatile (R"(
+
+   rjmp start_of_assembly
+
+   .data
+   ; any data values/static storage can go here
+
+   .text
+
+start_of_assembly:
+   ; your assembly language program goes here
+
+   ; Step 1: save r16, r17 since we will be modifying them
+   push r16
+   push r17
+
+   ; Step 2: read in the arguments a, b into registers r16, r17 respectively
+   mov r16,%1
+   mov r17,%2
+
+   ;
+   ;  --- YOUR CODE GOES HERE ---
+   ;       r16 = a, r17 = b
+
+   ;
+   ;  --- YOUR CODE ENDS ---
+   ;      The result must be in the register pair r17:r16.
+   ;      You can also rjmp to the label end_of_assembly if you need to.
+   ;
+end_of_assembly: 
+   ;  -- set r25:r24 to the value in r17:r16 --
+   mov r25,r17
+   mov r24,r16
+
+   ; -- restore the values that r16,r17 originally had
+   pop r17
+   pop r16
+
+   ; -- move r25:r24 to the 16-bit word in variable out
+   movw %0,r24
+
+)" : "=w" (out)  /* out is %0, and a 16-bit variable that is modified
+		    by the assembly language */
+   : "r" (a), "r" (b)  /* a is %1, b is %2, both are register-sized
+			  variables */
+   : "r25", "r24");   /* r24, r25 are modified by this assembly
+			 language fragment */
+
+  return out;
+}

@@ -34,37 +34,40 @@ start_of_assembly:
    push r19 
    ldi r19, 0
    
-   ;n-2 
+   ; n-2 
    push r20
    ldi r20, 1 
    push r21 
    ldi r21, 0 
 
-   ;n-1
+   ; n-1
    push r22
    push r23 
    ldi r22, 0
    ldi r23, 0 
 
-   ;result
+   ; result
    ldi r24, 0
    ldi r25, 0
 
+   ; check for 0
    cpi r18, 0
    brne one
    rjmp finish
    
    one:
-   ;check for 1 
+   ; check for 1 
    cpi r18, 1
    brne fib
    ldi r24, 1
    rjmp finish
    
-   
+   ; loop 
    fib:
      cp r19, r18
      brne fib_add
+   
+   ; pop everything off stack and end prgm
    finish:
      pop r23
      pop r22
@@ -82,6 +85,7 @@ start_of_assembly:
      mov r23, r25
      rjmp fib
 
+   ; add two words together and manage overflow
    wordadd:
      add r24,r20
      brcs wordoverflw ; lower-order bit needs a carry
@@ -93,7 +97,6 @@ start_of_assembly:
      add r25,r21
      ret
 
- 
    ;
    ;  --- YOUR CODE ENDS ---
    ;      The result must be in the register pair r25:r24

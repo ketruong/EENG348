@@ -31,13 +31,9 @@ start_of_assembly:
    ;       r24 = a, r25 = b
    ;
    
-   add r24,r25
+   add r24,r25 ; add, carry bit will be set to 1 if overflow
    clr r25 ; clear high order bit
-   brcs overflw ; if carry bit is = 1, inc r25
-   rjmp end_of_assembly
-
-overflw:
-   inc r25
+   adc r25,r25 ; 0 + 0 + (1 or 0) for high-order bit
    
    ;  --- YOUR CODE ENDS ---
    ;      The result must be in the register pair r25:r24

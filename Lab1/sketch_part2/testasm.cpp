@@ -30,53 +30,46 @@ start_of_assembly:
    ;  --- YOUR CODE GOES HERE ---
    ;       r24 = a, r25 = b
    ;
-
-   push r22
+   
+   push r22 ; save r22, r23 for later popping
    push r23
-   push r24
+   push r24 ; save r24, r25 for subroutine diffval
    push r25
-   call sumval
-   mov r22,r24 ; not sure if we can store on r22/r23 here, but i hope so!
-   mov r23,r25
-   pop r25
+   call sumval ; perform first addition
+   mov r22,r24 ; store return val from sumval
+   mov r23,r25 ; store pt. 2
+   pop r25 ; restore original a and b values
    pop r24
    call diffval ; one qty to be added in r25:r24, other in r23:r22
-   call wordadd
+   call wordadd ; add r25:r24 to r23:r22
    pop r23 ; restore r23
    pop r22 ; restore r22
-   rjmp end_of_assembly
+   rjmp end_of_assembly ; finished
 
 wordadd:
-   add r24,r22
-   brcs wordoverflw ; lower-order bit needs a carry
-   add r25,r23
-   ret
-wordoverflw:
-   inc r23
-   add r25,r23
+   add r24,r22 ; add lower bits
+   clr r22 ; clear one register for carry bit addition
+   adc r25,r22 ; carry bit + r25 + 0
+   add r25,r23 ; dont care about high order overflow (not possible here)
    ret
 
 sumval:
    add r24,r25
    clr r25 ; clear high order bit
-   brcs overflw ; if carry bit is = 1, inc r25
-   ret
-overflw:
-   inc r25
+   adc r25,r25 ; add 1 or 0 to 0,0
    ret
 
 diffval:
-   cp r25,r24
-   brlo greater_lp
-   sub r25,r24
-   mov r24,r25
-   clr r25
+   cp r25,r24 ; compare b and a
+   brlo greater_lp ; if b < a, goto greater_lp
+   sub r25,r24 ; sub a from b
+   mov r24,r25 ; move from higher-order register to lower-order register
+   clr r25 ; clear higher-order bit
    ret
-greater_lp:
-   sub r24,r25
-   clr r25
+greater_lp: ; b < a
+   sub r24,r25 ; sub b from a
+   clr r25 ; clear higher-order bit
    ret
-
 
    ;
    ;  --- YOUR CODE ENDS ---

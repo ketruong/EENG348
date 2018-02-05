@@ -2,7 +2,7 @@
 
 /* the attribute "used" tells the compiler to not inline this function */
 __attribute__((used))
-unsigned int testasm(unsigned char a, unsigned char b) {
+unsigned int testasm(unsigned char a) {
   unsigned int out;
 
   asm volatile (R"(
@@ -77,8 +77,7 @@ end_of_assembly:
    movw %0,r24
 )" : "=w" (out)  /* out is %0, and a 16-bit variable that is modified
         by the assembly language */
-   : "r" (a), "r" (b)  /* a is %1, b is %2, both are register-sized
-        variables */
+   : "r" (a)  /* a is %1 is a register-sized variables */
    : "r25", "r24");   /* r24, r25 are modified by this assembly
        language fragment */
 

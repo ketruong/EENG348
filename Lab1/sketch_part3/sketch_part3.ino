@@ -3,13 +3,13 @@
 void setup() {
   // put your setup code here, to run once
   Serial.begin(9600);
-  Serial.println(testasm(0, 4));
-  Serial.println(testasm(1, 4));
-  Serial.println(testasm(2, 4));
-  Serial.println(testasm(3, 4));
-  Serial.println(testasm(4, 4));
-  Serial.println(testasm(5, 4));
-  Serial.println(testasm(6, 4));
+  Serial.println(testasm(0));
+  Serial.println(testasm(1));
+  Serial.println(testasm(2));
+  Serial.println(testasm(3));
+  Serial.println(testasm(4));
+  Serial.println(testasm(5));
+  Serial.println(testasm(6));
   pinMode (13, OUTPUT);
 }
 

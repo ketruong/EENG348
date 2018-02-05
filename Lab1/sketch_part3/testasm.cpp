@@ -35,13 +35,13 @@ start_of_assembly:
    push r19 
    ldi r19, 0
    
-   ; holds the n-1 calculated value
+   ; holds the n-2 calculated value
    push r20
    ldi r20, 1 
    push r21 
    ldi r21, 0 
 
-   ; holds the n-2 calculated value 
+   ; holds the n-1 calculated value 
    push r22
    push r23 
    ldi r22, 0
@@ -73,7 +73,7 @@ start_of_assembly:
      mov r20, r22 ; move n-1 to n-2 
      mov r21, r23
      mov r22, r24 ; move result to n-1
-     mov r23, r25
+     mov r23, r25 ; r22, r23 and r24, r25 are the same
      rjmp fib      ; recursive call back
 
    ; add two words together and manage overflow

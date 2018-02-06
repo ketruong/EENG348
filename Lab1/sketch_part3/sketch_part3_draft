@@ -1,0 +1,105 @@
+#include "testasm.h"
+
+/* the attribute "used" tells the compiler to not inline this function */
+__attribute__((used))
+unsigned int testasm(unsigned char a) {
+  unsigned int out;
+
+  asm volatile (R"(
+   rjmp start_of_assembly
+   .data
+   ; any data values/static storage can go here
+   .text
+start_of_assembly:
+   ; Your assembly language program goes here
+   ;
+   ; For this example, your program must not modify any registers other than 
+   ; r24 and r25. In other words, save and restore all the registers that
+   ; are modified by your code.
+   ; Tell the compiler to move the argument a into register
+   ; r19
+   ;
+   push r18
+   mov r18,%1  
+   ;
+   ;  --- YOUR CODE GOES HERE ---
+   ;       r18 = n
+   
+   push r20
+   push r21
+   push r22
+   push r23
+   clr r20 ; used to keep track of how many things are in stack
+   clr r23 ; r23 used as sum
+   cpi r18,0
+   breq fin ; test if input = 0
+   cpi r18,1 ; test if input = 1
+   breq addone
+
+; initialize the n-1/n-2 registers
+   dec r18
+   mov r21,r18 ; store n-1 in r21
+   dec r18
+   mov r22,r18 ; store n-2 in r22
+
+main_loop:
+   cpi r22,0 ; if n-2 is equal to 0, n-1 = 1, inc sum
+   breq subloop1
+   cpi r22,1 ; if n-2 is equal to 1, inc sum twice
+             ; we do this because we're nearing the end of a tree (optimization)
+   breq subloop2
+   
+   ; at this point, we know we're not done
+   push r22 ; save n-2 for later
+   inc r20 ; so that we know we've saved something for later
+   dec r22 ; get new n-1, n-2 values
+   dec r21
+   rjmp main_loop
+
+subloop1: ; end of recursive call
+   inc r23
+   rjmp check_stac
+   
+subloop2: ; end of recursive call
+   inc r23
+   inc r23 ; special case, add two (fib(3)) has been called
+   rjmp check_stac
+
+check_stac:
+   cpi r20,0
+   breq fin
+   pop r21 ; restore the n that was saved for later
+   dec r20 ; decrease count of things on stack
+   dec r21 ; decrease it to get n-1
+   mov r22,r21 ; copy n-1 into register for n-2
+   dec r22 ; decrease to get n-2
+   rjmp main_loop ; run it again with new values
+   
+addone:
+   inc r23
+
+fin:
+   mov r24,r23
+   pop r23
+   pop r22
+   pop r21
+   pop r20
+   
+
+   ;
+   ;  --- YOUR CODE ENDS ---
+   ;      The result must be in the register pair r25:r24
+   ;      You can also rjmp to the label end_of_assembly if you need to.
+   ;
+end_of_assembly: 
+   ; -- move r25:r24 to the 16-bit word in variable out
+   movw %0,r24
+)" : "=w" (out)  /* out is %0, and a 16-bit variable that is modified
+        by the assembly language */
+   : "r" (a)  /* a is %1, b is %2, both are register-sized
+        variables */
+   : "r25", "r24");   /* r24, r25 are modified by this assembly
+       language fragment */
+
+  return out;
+}

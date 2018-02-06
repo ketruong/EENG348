@@ -37,11 +37,8 @@ start_of_assembly:
    cpi r18,1 ; test if input = 1
    breq addone
 
-; initialize the n-1/n-2 registers
-   dec r18
-   mov r21,r18 ; store n-1 in r21
-   dec r18
-   mov r22,r18 ; store n-2 in r22
+   mov r21,r18 ; prepare for initialization
+   rjmp init ; go initialize n-2, n-1
 
 main_loop:
    cpi r22,0 ; if n-2 is equal to 0, n-1 = 1, inc sum
@@ -53,8 +50,8 @@ main_loop:
    ; at this point, we know we're not done
    push r22 ; save n-2 for later
    inc r20 ; so that we know we've saved something for later
-   dec r22 ; get new n-1, n-2 values
-   dec r21
+   dec r22 ; get new n-2 value
+   dec r21 ; get new n-1 value
    rjmp main_loop
 
 subloop1: ; end of recursive call
@@ -66,14 +63,15 @@ subloop2: ; end of recursive call
    inc r23 ; special case, add two (fib(3)) has been called
    rjmp check_stac
 
-check_stac:
+check_stac: ; see if we're done with popping all elements from the stack
    cpi r20,0
-   breq fin
+   breq fin ; there's nothing more to pop, go to end
    pop r21 ; restore the n that was saved for later
-   dec r20 ; decrease count of things on stack
-   dec r21 ; decrease it to get n-1
+   dec r20 ; decrease count of things in the stack
+init:
+   dec r21 ; decrease n to get n-1
    mov r22,r21 ; copy n-1 into register for n-2
-   dec r22 ; decrease to get n-2
+   dec r22 ; decreased to get n-2
    rjmp main_loop ; run it again with new values
    
 addone:
@@ -82,7 +80,7 @@ addone:
 
 fin:
    mov r24,r23
-   pop r23
+   pop r23 ; restore all registers that were saved at beginning
    pop r22
    pop r21
    pop r20

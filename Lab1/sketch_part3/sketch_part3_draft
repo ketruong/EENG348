@@ -19,8 +19,9 @@ start_of_assembly:
    ; Tell the compiler to move the argument a into register
    ; r19
    ;
-   push r18
+
    mov r18,%1  
+
    ;
    ;  --- YOUR CODE GOES HERE ---
    ;       r18 = n
@@ -29,7 +30,7 @@ start_of_assembly:
    push r21
    push r22
    push r23
-   clr r20 ; used to keep track of how many things are in stack
+   clr r20 ; r20 used to keep track of how many things are in stack
    clr r23 ; r23 used as sum
    cpi r18,0
    breq fin ; test if input = 0
@@ -77,6 +78,7 @@ check_stac:
    
 addone:
    inc r23
+   rjmp fin
 
 fin:
    mov r24,r23
@@ -84,6 +86,7 @@ fin:
    pop r22
    pop r21
    pop r20
+   rjmp end_of_assembly
    
 
    ;

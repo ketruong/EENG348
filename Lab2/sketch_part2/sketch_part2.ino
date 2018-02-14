@@ -1,13 +1,10 @@
-int clockPin = 10;
-int latchPin = 9;
-int dataPin = 8;
+int clockPin = 4;
+int latchPin = 3;
+int dataPin = 2;
+int clockPinx = 7;
+int latchPinx = 6;
+int dataPinx = 5;
 
-int clockPinx = 13;
-int latchPinx = 12;
-int dataPinx = 11;
-
-int potPin = 2;
-int val = 0;
 // Bottom to Top
 byte ledStates[10][4] = { {B1000001,B1111111,B1000001,B1111111}, //0
                           {B0000100, B0000010, B1111111,B1000000},//1
@@ -35,19 +32,10 @@ byte GroundLEDs [10][4] = { {B00000,B01110,B00000,B01110}, //0
 
 
 void setup() {
-  pinMode(latchPinx, OUTPUT);
-  pinMode(clockPinx, OUTPUT);
-  pinMode(dataPinx, OUTPUT);
-  
-  pinMode(latchPin, OUTPUT);
-  pinMode(clockPin, OUTPUT);
-  pinMode(dataPin, OUTPUT);
-
-    digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, B11111111);  
-    digitalWrite(latchPin, HIGH);
-    
-    Serial.begin(9600);
+    DDRD = B11111100;
+    PORTD = B00000000;
+    shiftOut(dataPin, clockPin, LSBFIRST, B11111111); 
+    PORTD = B00001000; 
 }
 
 void loop() {
@@ -56,29 +44,35 @@ void loop() {
     for(int i=0;i<=3;i++){
       SetStates(ledStates[k][i]);
       GroundCorrectLED (GroundLEDs[k][i]);
-      digitalWrite(latchPin, LOW);
-      shiftOut(dataPin, clockPin, LSBFIRST, B11111111);  
-      digitalWrite(latchPin, HIGH);
+       PORTD = B00000000;
+       shiftOut(dataPin, clockPin, LSBFIRST, B11111111); 
+       PORTD = B00001000; 
     }
   }
-  delay(1000);
+  delay(100);
   }
 }
 
 void GroundCorrectLED (byte states){
-  
-    digitalWrite(latchPin, LOW);
-    shiftOut(dataPin, clockPin, LSBFIRST, states);  
-    digitalWrite(latchPin, HIGH);
-    
+    PORTD = B00000000;
+    shiftOut(dataPin, clockPin, LSBFIRST, states); 
+    PORTD = B00001000; 
 }
 
 void SetStates (byte statesx){
-       
-    digitalWrite(latchPinx, LOW);
+    PORTD = B00000000;
     shiftOut(dataPinx, clockPinx, LSBFIRST, statesx);  
-    digitalWrite(latchPinx, HIGH);
-    
+    PORTD = B01000000;   
+}
+
+//debugger function to print bytes
+void printBits(byte myByte){
+ for(byte mask = 0x80; mask; mask >>= 1){
+   if(mask  & myByte)
+       Serial.print('1');
+   else
+       Serial.print('0');
+ }
 }
      
 

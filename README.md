@@ -3,6 +3,7 @@ This is the github repository for all projects in EENG348/CPSC338.
 
 ## Projects
   * **Lab 1** - (https://github.com/ketruong/EENG348/tree/master/Lab1)
+   * **Lab 2** - (https://github.com/ketruong/EENG348/tree/master/Lab2)
 
 ## Authors
 

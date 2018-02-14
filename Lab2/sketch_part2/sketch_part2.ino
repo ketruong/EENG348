@@ -24,7 +24,7 @@ byte GroundLEDs [10][4] = { {B00000,B01110,B00000,B01110}, //0
                             {B00000,B11110,B00000,B11110},//3
                             {B00000,B01111,B00000,B11110},//4
                             {B00000,B01111,B11110,B01111},//5
-                             {B00000,B01110,B01111,B01111},//6
+                            {B00000,B01110,B01111,B01111},//6
                             {B00000,B11110,B00000,B11110}, //7
                             {B00000,B01110,B00000,B01110},//8
                             {B00000,B01111,B00000,B11110}//9
@@ -32,36 +32,52 @@ byte GroundLEDs [10][4] = { {B00000,B01110,B00000,B01110}, //0
 
 
 void setup() {
+    // Set pins 2-7 as output
     DDRD = B11111100;
+    // Set latch as low
     PORTD = B00000000;
     shiftOut(dataPin, clockPin, LSBFIRST, B11111111); 
+    // Set latch as high
     PORTD = B00001000; 
 }
 
 void loop() {
-  for(int k =0; k<=9;k++){
-  for(int j =0; j<=1000; j++){
-    for(int i=0;i<=3;i++){
-      SetStates(ledStates[k][i]);
-      GroundCorrectLED (GroundLEDs[k][i]);
-       PORTD = B00000000;
-       shiftOut(dataPin, clockPin, LSBFIRST, B11111111); 
-       PORTD = B00001000; 
-    }
-  }
-  delay(100);
-  }
-}
+  // Loops through 0-9 digits
+  for(int k =0; k<=9;k++){ 
+    // Displays for 1 sec
+    for(int j =0; j<=1000; j++){
+      // Go through parts that make the digit 
+      for(int i=0;i<=3;i++){
+         // Get rows 
+         SetStates(ledStates[k][i]);
+         // Get Columns
+         GroundCorrectLED (GroundLEDs[k][i]);
 
+         // Set latch as low
+         PORTD = B00000000;
+         shiftOut(dataPin, clockPin, LSBFIRST, B11111111); 
+         // Set latch as high
+         PORTD = B00001000; 
+      }
+    }
+    delay(100);
+    }
+}
+// Controls Columns 
 void GroundCorrectLED (byte states){
+    // Set latch to low 
     PORTD = B00000000;
     shiftOut(dataPin, clockPin, LSBFIRST, states); 
+    // Set latch to high
     PORTD = B00001000; 
 }
 
+//Controls Rows 
 void SetStates (byte statesx){
+    // Set latchx to low
     PORTD = B00000000;
     shiftOut(dataPinx, clockPinx, LSBFIRST, statesx);  
+    // Set latchx to high
     PORTD = B01000000;   
 }
 

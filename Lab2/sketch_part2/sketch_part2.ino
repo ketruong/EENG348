@@ -1,9 +1,9 @@
-int clockPin = 4;
-int latchPin = 3;
-int dataPin = 2;
-int clockPinx = 7;
-int latchPinx = 6;
-int dataPinx = 5;
+int clockPin = 10;
+int latchPin = 9;
+int dataPin = 8;
+int clockPinx = 13;
+int latchPinx = 12;
+int dataPinx = 11;
 
 // Bottom to Top
 byte ledStates[10][4] = { {B1000001,B1111111,B1000001,B1111111}, //0
@@ -33,12 +33,12 @@ byte GroundLEDs [10][4] = { {B00000,B01110,B00000,B01110}, //0
 
 void setup() {
     // Set pins 2-7 as output
-    DDRD = B11111100;
+    DDRB = B11111111;
     // Set latch as low
-    PORTD = B00000000;
+    PORTB = B00000000;
     shiftOut(dataPin, clockPin, LSBFIRST, B11111111); 
     // Set latch as high
-    PORTD = B00001000; 
+    PORTB = B00000010; 
 }
 
 void loop() {
@@ -54,10 +54,10 @@ void loop() {
          GroundCorrectLED (GroundLEDs[k][i]);
 
          // Set latch as low
-         PORTD = B00000000;
+         PORTB = B00000000;
          shiftOut(dataPin, clockPin, LSBFIRST, B11111111); 
          // Set latch as high
-         PORTD = B00001000; 
+        PORTB = B00000010;
       }
     }
     delay(100);
@@ -66,19 +66,19 @@ void loop() {
 // Controls Columns 
 void GroundCorrectLED (byte states){
     // Set latch to low 
-    PORTD = B00000000;
+    PORTB = B00000000;
     shiftOut(dataPin, clockPin, LSBFIRST, states); 
     // Set latch to high
-    PORTD = B00001000; 
+    PORTB = B00000010;
 }
 
 //Controls Rows 
 void SetStates (byte statesx){
     // Set latchx to low
-    PORTD = B00000000;
+    PORTB = B00000000;
     shiftOut(dataPinx, clockPinx, LSBFIRST, statesx);  
     // Set latchx to high
-    PORTD = B01000000;   
+    PORTB = B00010000; 
 }
 
 //debugger function to print bytes

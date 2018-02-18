@@ -1,4 +1,4 @@
-int clockPin = 10;
+8int clockPin = 10;
 int latchPin = 9;
 int dataPin = 8;
 int clockPinx = 13;
@@ -32,7 +32,7 @@ byte GroundLEDs [10][4] = { {B00000,B01110,B00000,B01110}, //0
 
 
 void setup() {
-    // Set pins 2-7 as output
+    // Set pins 8-13 as output
     DDRB = B11111111;
     // Set latch as low
     PORTB = B00000000;

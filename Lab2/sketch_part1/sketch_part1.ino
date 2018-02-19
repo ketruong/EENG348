@@ -1,6 +1,6 @@
 long lastDebounceTime = 0; // time of last debounce  
 long debounceDelay = 50;   // time for button to settle
-int buttonState = 0;       // records current state
+int buttonState = 1;       // records current state
 
 void setup(){
   DDRD = B0000000;
@@ -17,14 +17,14 @@ void loop(){
     
     // check from off to on
     if ((mask & pinD) != 0 & buttonState == 0) {
-        Serial.println("Button Pressed!");
-       // change state to pressed
+        Serial.println("Button Released!");
+       // change state to released
         buttonState = 1;
        
      // check from on to off
     } else if ((mask & pinD) == 0 & buttonState != 0) {
-        Serial.println("Button Released!");
-       // change state to not pressed
+        Serial.println("Button Pressed!");
+       // change state to pressed
         buttonState = 0;
     }
 

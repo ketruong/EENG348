@@ -1,7 +1,7 @@
- long lastDebounceTime = 0; // time of last debounce  
- long debounceDelay = 50;   // time for button to settle
- int buttonState = 0;       // records current state
- 
+long lastDebounceTime = 0; // time of last debounce  
+long debounceDelay = 50;   // time for button to settle
+int buttonState = 0;       // records current state
+
 void setup(){
   DDRD = B0000000;
   Serial.begin(9600);
@@ -10,20 +10,21 @@ void setup(){
 void loop(){
   // read portD registers to see if button is pressed
   byte pinD = PIND;
+  byte mask = 0x4;
 
   //check if button has settled 
   if ((millis() - lastDebounceTime) > debounceDelay) {
     
     // check from off to on
-    if(bitRead(pinD,3) & !buttonState) {
-       Serial.println("Button Pressed!");
+    if ((mask & pinD) != 0 & buttonState == 0) {
+        Serial.println("Button Pressed!");
        // change state to pressed
-       buttonState = 1;
+        buttonState = 1;
        
-    // check from on to off
-    } else if (!bitRead(pinD,3) & buttonState) {
+     // check from on to off
+    } else if ((mask & pinD) == 0 & buttonState != 0) {
         Serial.println("Button Released!");
-        // change state to not pressed
+       // change state to not pressed
         buttonState = 0;
     }
 
@@ -34,10 +35,11 @@ void loop(){
 
 //debugger function to print bytes
 void printBits(byte myByte){
- for(byte mask = 0x80; mask; mask >>= 1){
-   if(mask  & myByte)
-       Serial.print('1');
-   else
-       Serial.print('0');
- }
+  byte mask = 0x4;
+  if (mask  & myByte) {
+      Serial.print('1');
+  } else {
+      Serial.print('0');
+  }
+  Serial.print('\n');
 }

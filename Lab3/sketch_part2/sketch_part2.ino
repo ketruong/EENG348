@@ -4,8 +4,8 @@ int redPin = 11;
 int echo_pin = 12;
 int trig_pin = 13;
 
-long duration;
-int distance;
+unsigned long duration;
+unsigned long distance;
 
 void setup() {
   pinMode(bluePin, OUTPUT); //set bluePin as an Output 
@@ -26,13 +26,13 @@ void loop() {
   // Reads the echoPin, returns the sound wave travel time in microseconds
   duration = pulseIn(echo_pin, HIGH);
   
-  // Calculating the distance
-  distance= duration*0.034/2;
-  int volt = map(distance, 0, 1024, 0, 255);
+  // Calculating the distance in centimeteres
+  distance= duration*0.034/2; 
+  int volt = map(distance, 400, 0, 0, 255);
   // Prints the distance on the Serial Monitor
   Serial.print("Distance: ");
   Serial.println(distance);
-   Serial.print("Volt: ");
+  Serial.print("Volt: ");
   Serial.println(volt);
   delay(1000);
   setColor(volt, volt, volt); 

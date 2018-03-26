@@ -20,8 +20,8 @@ void loop() {
   Serial.print("Adjusted voltage: ");
   adj_voltage = map(raw_voltage, 0, 1024, 0, 255);
   Serial.println(adj_voltage);
-  delay(1000);
   setColor(adj_voltage, adj_voltage, adj_voltage); 
+  delay(1000);
 }
 
 void setColor(int red, int green, int blue)

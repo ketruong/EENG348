@@ -30,53 +30,32 @@
 \maketitle
 % Introduction {{{
 \section{Introduction}
-    
-    During reading week, students go to Bass Library to concentrate and study
-    for their exams. Many students want to study alone and they tend to look
-    for one of the individual study rooms as seen in Figure~\ref{room}.
-    \begin{figure}[h!]
+    Snake is a classic arcade game in which a player maneuvers his or her "snake" around some rectangular area, collecting food and avoiding collisions between the snake's head and any part of the snake's body. The snake advances at a constant rate, although the length of the snake's body increases as it consumes food. New instances of food appear as it is consumed such that there is always exactly one piece of food present on the playing area. Typically, a single player controls a single snake, and the goal is to maximize food consumption.
+       \begin{figure}[h!]
         \centering
-        \includegraphics{room.jpg}
-        \caption{Individual Study Room in Bass Library}\label{room}
+        \includegraphics[scale=0.5]{snake.png}
+        \caption{Snake in the 1970's}\label{button}
     \end{figure}
+We propose implementing a two-player version of snake on the Arduino. Food will appear in the usual way, and players will compete over it so that they may grow larger and therefore pose a larger threat to their opponents. Other gameplay elements will be added to increase complexity, including specially-colored "food" that grants a player's snake temporary invincibility.
 
-    Oftentimes, one has to walk around the whole library to find an empty room.
-    This takes around 5 - 10 minutes and sometimes all the rooms are occupied. 
-    What if there was an easier and faster way to check if there is a room available
-    in Bass?
+We will display the playing area on a 16 x 32 RGB LED matrix panel, and players will control their respective snakes' movement by manipulating a PlayStation 2 Joystick.
 
-    The goal of our project is to make an online system which will tell students when a room
-    is available and where that room is. We will have LED buttons, as seen in Figure~\ref{button}
-    , in each room and whenever a student enters a room, he or she will press the button and 
-    the LED will light up and whenever the student leaves the room, he or she will 
-    press the button again. The information will be sent to a website which will
-    have data about each room and students can easily access the website from there.
-    
-    \begin{figure}[h!]
-        \centering
-        \includegraphics[scale=0.25]{pacman.jpg}
-        \caption{3D CAD of LED button with Pacman Design}\label{button}
-    \end{figure}
-
-    Each button will be decorated with some sort 3D printed design to incentivize students
-    to press the button, similarly to the easy button. We will use the Arduino Nano to send data
-    about the button state to the website using the ESP8266 WiFi module. 
 % }}}
 % Materials {{{
 \section{Materials}
 \begin{itemize}
-    \item \href{https://www.adafruit.com/product/3491}{Arcade Button with LED - 30mm Translucent Clear x 10} 
-    \item \href{https://www.sparkfun.com/products/13678}{WiFi Module - ESP8266 x 10}
-    \item \href{https://www.amazon.com/Arduino-Elegoo-ATmega328P-without-compatible/dp/B0713XK923}{Arduino Nano x 10}
+    \item Arduino UNO
+    \item 3D-printed housing
+    \item \href{https://www.adafruit.com/product/420}{16x32 RGB RGB LED Matrix Panel}
+    \item \href{https://www.newegg.com/Product/Product.aspx?Item=9SIABKS5R53998i&ignorebbr=1&nm_mc=KNC-GoogleMKP-PC&cm_mmc=KNC-GoogleMKP-PC-_-pla-_-Gadgets-_-9SIABKS5R53998&gclid=EAIaIQobChMIrq-a7qKL2gIVG0sNCh11XASxEAkYAiABEgKUXPD_BwE&gclsrc=aw.ds}{Playstation 2 Game Joystick Axis Sensor Module (x2)}
+    
+    \item \href{https://www.adafruit.com/product/327}{2.1mm Barrel Jack Extension Cable}
+    \item \href{https://www.adafruit.com/product/276}{5V 2A Switching Power Supply}
+    \item \href{https://www.adafruit.com/product/368}{2.1mm Barrel Jack to Screw Terminal Block}
 \end{itemize}
 % }}}
 % Project Strategy {{{
 \section{Project Strategy}
-    We plan to 3D print a small container to hold the Arduino Nano and the Wifi module.
-    Then we plan to connect the Arduino to a website and get the Arduino 
-    to send information about the state of the button to the website. Next we plan
-    to make the website as attractive as possible so that students want to use 
-    this service since it only benefits them. Finally we hope to deploy these 
-    buttons to all of the approximately 50 study rooms in Bass Library.
+    We plan to appropriately wire the joysticks to the Uno, the power supply to the LED matrix, and the LED matrix to the Uno. Then, we hope to design an efficient game engine and implement it in C++. Finally, we hope to 3D print an enclosure for the entire microcontroller assembly such that the two joysticks are in appropriate, comfortable places. 
 % }}}
 \end{document}

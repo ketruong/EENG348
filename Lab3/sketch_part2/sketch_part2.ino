@@ -8,34 +8,35 @@ unsigned long duration;
 unsigned long distance;
 
 void setup() {
-  pinMode(bluePin, OUTPUT); //set bluePin as an Output 
-  pinMode(greenPin, OUTPUT); //set greenPin as an Output
-  pinMode(redPin, OUTPUT);  // set redPin as an Output
-  pinMode(trig_pin, OUTPUT); // Sets the trigPin as an Output
-  pinMode(echo_pin, INPUT); // Sets the echoPin as an Input  
+  pinMode(bluePin, OUTPUT); // blue out
+  pinMode(greenPin, OUTPUT); // green out
+  pinMode(redPin, OUTPUT);  // red out
+  pinMode(trig_pin, OUTPUT); // trig out
+  pinMode(echo_pin, INPUT); // echo in
   Serial.begin(9600);
 }
 
 void loop() {
+  // send a pulse
   digitalWrite(trig_pin, LOW);
   delayMicroseconds(2);
   digitalWrite(trig_pin, HIGH);
   delayMicroseconds(10);
   digitalWrite(trig_pin, LOW);
   
-  // Reads the echoPin, returns the sound wave travel time in microseconds
+  // read the echoPin, return the travel time in ms
   duration = pulseIn(echo_pin, HIGH);
   
-  // Calculating the distance in centimeteres
-  distance= duration*0.034/2; 
+  // get distance in centimeters
+  distance = duration*0.034/2; 
   int volt = map(distance, 400, 0, 0, 255);
   // Prints the distance on the Serial Monitor
   Serial.print("Distance: ");
   Serial.println(distance);
-  Serial.print("Volt: ");
-  Serial.println(volt);
-  delay(1000);
+  //Serial.print("Volt: ");
+  //Serial.println(volt);
   setColor(volt, volt, volt); 
+  delay(1000);
 }
 
 void setColor(int red, int green, int blue)

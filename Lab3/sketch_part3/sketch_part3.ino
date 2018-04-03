@@ -1,93 +1,88 @@
- // Pin definitions 
- #define outputA 5
- #define outputB 4
- #define bluePin 9
- #define greenPin 10
- #define redPin 11
- #define echo_pin 12
- #define trig_pin 13
- #define photo_pin 0
- #define range 128
- // Debouncer
- long t1 = 0;
- long delayT = 100;
+#define outputA 5
+#define outputB 4
+#define bluePin 9
+#define greenPin 10
+#define redPin 11
+#define echo_pin 12
+#define trig_pin 13
+#define photo_pin 0
+#define range 128
+//photo pin
+int raw_voltage = 0;
+float new_voltage = 0;
 
- // Encoder Change of State
- int counter = 0; 
- int aState;
- int aLastState; 
- int bState; 
+// Debouncer
+long t1 = 0;
+long delayT = 100;
+
+// Encoder Change of State
+int counter = 0; 
+int aPulse;
+int bPulse;
+int aPrev;
 
 int red = 0;
 int green = 0; 
 int bleu = 0;
 
- //photo pin
-int raw_voltage = 0;
-float adj_voltage = 0;
 int color;
 float factor;
 void setup() { 
-   //set encoder pins 
-   pinMode (outputA,INPUT);
-   pinMode (outputB,INPUT);
-   digitalWrite(outputA,HIGH);
-   digitalWrite(outputB,HIGH);
-
-   // RBG
-   pinMode(bluePin, OUTPUT); 
-   pinMode(greenPin, OUTPUT); 
-   pinMode(redPin, OUTPUT);  
-
-   //Photo Resistor
-   pinMode(photo_pin, INPUT);
+  //set encoder pins 
+  pinMode (outputA,INPUT);
+  pinMode (outputB,INPUT);
+  digitalWrite(outputA,HIGH);
+  digitalWrite(outputB,HIGH);
   
-   // Reads the initial state of the outputA
-   aLastState = digitalRead(outputA); 
-   Serial.begin (9600);
- } 
- void loop() { 
-  aState = digitalRead(outputA); // Reads the "current" state of the outputA
-  bState = digitalRead(outputB);
-     if (aState != aLastState){
-        delay(7);
-        aState = digitalRead(outputA);
-        if (aState != aLastState) {
-         // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
-         if (aState != bState) { 
-           counter++;
-           if (counter >= 255) {
+  // RBG
+  pinMode(bluePin, OUTPUT); 
+  pinMode(greenPin, OUTPUT); 
+  pinMode(redPin, OUTPUT);  
+  
+  //Photo Resistor
+  pinMode(photo_pin, INPUT);
+  
+  // Reads the initial state of the outputA
+  aPrev = digitalRead(outputA); 
+  Serial.begin (9600);
+} 
+void loop() { 
+  aPulse = digitalRead(outputA); // Reads the "current" state of the outputA
+  bPulse = digitalRead(outputB);
+    if (aPulse != aPrev) {
+      delay(7); // optimal debounce time
+      aPulse = digitalRead(outputA);
+      if (aPulse != aPrev) {
+        // If the bPulse state != aPulse state, the encoder is rotating clockwise
+        if (aPulse != bPulse) { 
+          counter++;
+          if (counter >= 255) {
             counter = 255;
-           }
-         } else {
-           counter--;
-           if (counter <= 0) {
+          }
+        } else {
+          counter--;
+          if (counter <= 0) {
             counter = 0;
-           }
-           
-         }
-       Serial.print("Position: ");
-       Serial.println(counter);
-       color = map(counter,-128,128,0, 256);
-       Serial.println(color);
-       Serial.println(getR(color, factor));
-       red = getR(color, factor);
-       green = getG(color, factor);
-       bleu = getB(color, factor);
+          }
+         
         }
-     }
-     factor = intensity();
-     /*Serial.print(factor* red);
-     Serial.print(" ");
-     Serial.print(factor* green);
-     Serial.print(" ");
-     Serial.println(factor* bleu);*/
-     //set the color of the RGB LED
-     setColor(255-3*factor*red,255-3*factor*green,255-3*factor*bleu);
-     aLastState = aState; // Updates the previous state of the outputA with the current state
+      Serial.print("Position: ");
+      Serial.println(counter);
+      color = map(counter, 0, 255,0, 255);
+      // Serial.println(color);
+      // Serial.println(getR(color, factor));
+      red = getR(color);
+      green = getG(color);
+      bleu = getB(color);
+      }
+    }
+    factor = intensity();
+    //set the color of the RGB LED
+    setColor(255-factor*red,255-factor*green,255-factor*bleu);
+    aPrev = aPulse; // update aPrev
  }
 
-//return intensity factor from distance echo sensor
+// return intensity factor from distance echo sensor
 float intensity(){
   raw_voltage = analogRead(photo_pin);
   raw_voltage = map(raw_voltage, 1024,0,0,1024);
@@ -96,19 +91,18 @@ float intensity(){
   return raw_voltage/1024.0;
 }
 
-int getR(int b, float intensity){
+int getR(int b){
   float r = b * 23 % 256;
-  //Serial.println(r);
+  //Serial.print(r);
   return r;
 }
-int getG(int b, float intensity){
+int getG(int b){
   float g  = b * 31 % 256;
-  //Serial.println(g);
+  //Serial.print(g);
   return g;
 }
 
-//get a number for 
-int getB(int b, float intensity){
+int getB(int b){
   float blue = b * 41 % 256;
   //Serial.println(blue);
   return blue;

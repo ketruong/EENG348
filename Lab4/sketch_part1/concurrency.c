@@ -161,14 +161,28 @@ void enqueue (process_t * current, process_t * old) {
 }
 __attribute__((used)) unsigned int process_select (unsigned int cursp) {
     // no current process
-    if (cursp == 0) return 0;
+    if (!current_process) return 0;
+    
+    // not running yet
+    if (cursp == 0)  return current_process->sp;
 
-    // there is a process and check if there is another process read
+    // there is a process and go to next  
     else { 
+        // remember current process and send to the end
         process_t * old = current_process;
+        old->sp = cursp;
+
+        // go to the next process
         current_process = current_process->next;
+        
+        // next is NULL
+        old->next = NULL;
+        
+        // add to the end of the queue 
         enqueue(current_process, old);
-        return old->sp;
+
+        //return the next stack pointer
+        return current_process->sp;
    }
 }
 /* Starts up the concurrent execution */

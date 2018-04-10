@@ -8,9 +8,9 @@ void p1 (void)
   /* process 1 here */
   while(1) {
     digitalWrite (white, HIGH);
-    delay (100);
+    delay (500);
     digitalWrite (white, LOW);
-    delay (100);
+    delay (500);
   }
 }
 
@@ -19,13 +19,12 @@ void p2 (void)
 /* process 2 here */
     while(1)  {
       digitalWrite (blue, HIGH);
-      delay (100);
+      delay (500);
       digitalWrite (blue, LOW);
-      delay (100);
+      delay (500);
     } 
     
 }
-
 
 void setup()
 {
@@ -38,12 +37,12 @@ void setup()
       Serial.println("p1 dead");
       return;
    }
- /*
+ 
    if (process_create (p2, 32) < 0) {
       Serial.println("p2 dead");
       return;
    }
-   */
+   
 }
 
 void loop()

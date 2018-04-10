@@ -17,11 +17,7 @@ struct process_state {
     unsigned int sp; /* stack pointer */
     struct process_state *next; /* link to next process */
 };
-struct lock_state {
-    struct process_state * curr; /* link to next process */
-};
 
-typedef struct lock_state lock_t;
 typedef struct process_state process_t;
    /* opaque definition of process type; you must provide this
       implementation.

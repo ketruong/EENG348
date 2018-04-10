@@ -3,7 +3,6 @@
 #include "concurrency.h"
 
 process_t * current_process = NULL; 
-lock_t* lock; 
 
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
@@ -208,11 +207,11 @@ int process_create (void (*f)(void), int n) {
     new_process->sp = new_sp;
     new_process->next = NULL;
     
-    if(!current_process) {
-        current_process = new_process;
-    } else {
-        enqueue(current_process, new_process);
-    }
+    // if there are no current process
+    if(!current_process) current_process = new_process;
+    
+    // put at the end of the queue 
+    else enqueue(current_process, new_process);
    
     return 0;
 }
@@ -251,18 +250,4 @@ unsigned int process_init (void (*f) (void), int n)
   stk = (unsigned int)stkspace + n - EXTRA_SPACE - 1;
 
   return stk;
-}
-void lock_init (lock_t *l) {
-    l->curr = NULL;
-}
-void lock_acquire (lock_t *l) {
-    if(!l->curr) {
-        l->curr = current_process;
-        yield();
-    } else {
-        return;
-    }
-}
-void lock_release (lock_t *l) {
-    l->curr = NULL;
 }

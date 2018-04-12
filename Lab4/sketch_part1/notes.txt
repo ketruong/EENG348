@@ -1,0 +1,14 @@
+process_create()
+- get stack pointer and check it error 
+- alloc space for new process
+- set fields
+- add to the current_process queue and update tail 
+
+process_start()
+-process_begin
+
+process_select()
+- nothing in queue return 0
+- if not running yet start the queue 
+- save sp in current_process and move the current_process to end of queue
+- make the next process the head of the queue and return the next process's sp

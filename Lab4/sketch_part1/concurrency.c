@@ -170,6 +170,9 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
         // remember current process and send to the end
         process_t * old = current_process;
         old->sp = cursp;
+        
+        // If there is only one process
+        if(!current_process->next) return old->sp;
 
         // go to the next process
         current_process = current_process->next;

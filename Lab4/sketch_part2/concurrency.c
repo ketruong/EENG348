@@ -140,28 +140,26 @@ __attribute__((used)) void process_timer_interrupt()
 #define EXTRA_SPACE 37
 #define EXTRA_PAD 4
 
-/* Called by the runtime system to select another process.
-   "cursp" = the stack pointer for the currently running process
-*/
+
+
+// pop off queue 
 process_t * dequeue (process_t * current) {
     process_t * head = current;
     current = current->next;
     head->next = NULL;
     return head;
 }
+
+// add to queue 
 void enqueue (process_t * current, process_t * old) {
-        if(!current) { 
-            current = old;
-            return;
-        } else {
-            process_t * temp = current;
-            while(temp->next != NULL) {
-                temp = temp->next;
-            }
-            temp->next = old;
-            return;
-        }
+    process_t * temp = current; 
+    while(temp->next != NULL) temp = temp->next;
+    temp->next = old;
 }
+
+/* Called by the runtime system to select another process.
+   "cursp" = the stack pointer for the currently running process
+*/
 __attribute__((used)) unsigned int process_select (unsigned int cursp) {
     // no current process
     if (!current_process) return 0;
@@ -230,11 +228,21 @@ void lock_init (lock_t *l) {
 // acquire the lock 
 void lock_acquire (lock_t *l) {
     asm volatile ("cli\n\t");
-    if(!l->curr) { 
-        l->curr = current_process;
-    } else if(l->curr) {
-        l->locked = current_process;
+    
+    // process gets the lock 
+    if(!l->curr) l->curr = current_process;
+    
+    // if another process tries to get the lock 
+    else if(l->curr != current_process) {
+      
+        // add to lock queue 
+        if(!l->locked) l->locked = current_process;
+        else enqueue(l->locked,current_process);
+
+        // now blocked 
         current_process->block = 1;
+
+        // go to the next process 
         yield();
     }
     asm volatile ("sei\n\t");
@@ -242,10 +250,24 @@ void lock_acquire (lock_t *l) {
 
 void lock_release (lock_t *l) {
     asm volatile ("cli\n\t");
-    process_t * temp = dequeue(l->locked); 
-    enqueue(current_process, l->curr);
+
+    // get first item off the locked queue
+    process_t * temp  = l->locked;
+
+    // go to the next item in the queue 
+    l->locked = l->locked->next; 
+
+    // popped off process gets the lock
     l->curr = temp;
+
+    // no longer blocked 
     temp->block = 0;
+
+    // push onto the ready queue
+    if(!current_process) current_process = temp; 
+    else enqueue(current_process, temp);
+  
+   
     asm volatile ("sei\n\t");
 }
 

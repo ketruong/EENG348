@@ -3,7 +3,7 @@
 #include "concurrency.h"
 
 process_t * current_process = NULL; 
-
+process_t * tail = NULL;
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
 __attribute__((used)) void process_begin ()
@@ -142,19 +142,18 @@ __attribute__((used)) void process_timer_interrupt()
 
 
 
-// pop off queue 
-process_t * dequeue (process_t * current) {
-    process_t * head = current;
-    current = current->next;
-    head->next = NULL;
-    return head;
-}
+
 
 // add to queue 
-void enqueue (process_t * current, process_t * old) {
-    process_t * temp = current; 
-    while(temp->next != NULL) temp = temp->next;
-    temp->next = old;
+void enqueue_ready (process_t * old) {
+    tail->next = old;
+    tail = tail->next;
+}
+
+void enqueue_locked (process_t * locked, process_t * old) {
+    process_t * temp = locked;
+    while (temp->next) temp = temp->next;
+    temp->next = current_process;
 }
 
 /* Called by the runtime system to select another process.
@@ -167,6 +166,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
     if (cursp == 0)  return current_process->sp;
     // there is a process and go to next  
     else { 
+    
         // remember current process and send to the end
         process_t * old = current_process; 
         old->sp = cursp; 
@@ -181,7 +181,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
         old->next = NULL;
         
         // add to the end of the queue 
-        if(!old->block) enqueue(current_process, old);
+        if(!old->block) enqueue_ready(old);
 
         //return the next stack pointer
         return current_process->sp;
@@ -213,10 +213,13 @@ int process_create (void (*f)(void), int n) {
     new_process->block = 0;
     
     // if there are no current processes 
-    if(!current_process) current_process = new_process;
+    if(!current_process) {
+      current_process = new_process;
+      tail = current_process;
+    }
 
     // else add to the end of the queue 
-    else enqueue(current_process, new_process);
+    else enqueue_ready(new_process);
    
     return 0;
 }
@@ -232,13 +235,14 @@ void lock_acquire (lock_t *l) {
     // process gets the lock 
     if(!l->curr) l->curr = current_process;
     
+        
     // if another process tries to get the lock 
     else if(l->curr != current_process) {
       
         // add to lock queue 
         if(!l->locked) l->locked = current_process;
-        else enqueue(l->locked,current_process);
-
+        else enqueue_locked(l->locked, current_process);
+ 
         // now blocked 
         current_process->block = 1;
 
@@ -250,24 +254,34 @@ void lock_acquire (lock_t *l) {
 
 void lock_release (lock_t *l) {
     asm volatile ("cli\n\t");
-
+    // 
+    if(!l->locked) {
+      l->curr = NULL;
+      return;
+    }
+    
+    // next process gets the lock 
+    l->curr = l->locked;
+    
     // get first item off the locked queue
     process_t * temp  = l->locked;
+    process_t * old = current_process;
 
-    // go to the next item in the queue 
+    // go to the next item in the locked queue 
     l->locked = l->locked->next; 
-
-    // popped off process gets the lock
-    l->curr = temp;
-
+    
+    //putting on the end of the ready queue
+    temp->next = NULL;
+    
     // no longer blocked 
     temp->block = 0;
 
     // push onto the ready queue
     if(!current_process) current_process = temp; 
-    else enqueue(current_process, temp);
-  
-   
+    else enqueue_ready(temp);
+
+    // old process gets blocked 
+    old->block = 1; 
     asm volatile ("sei\n\t");
 }
 

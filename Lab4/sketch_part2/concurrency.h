@@ -37,7 +37,7 @@ typedef struct lock_state {
 /* ====== Part 1 ====== */
 
 extern process_t * current_process; 
-
+extern process_t * tail; 
 /* the currently running process */
 
 __attribute__((used)) unsigned int process_select (unsigned int cursp);

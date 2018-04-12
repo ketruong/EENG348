@@ -33,7 +33,7 @@ typedef struct process_state process_t;
 /* ====== Part 1 ====== */
 
 extern process_t * current_process; 
-extern lock_t* lock; 
+
 /* the currently running process */
 
 __attribute__((used)) unsigned int process_select (unsigned int cursp);

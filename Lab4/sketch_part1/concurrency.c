@@ -3,7 +3,7 @@
 #include "concurrency.h"
 
 process_t * current_process = NULL; 
-
+process_t * tail = NULL;
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
 __attribute__((used)) void process_begin ()
@@ -143,20 +143,9 @@ __attribute__((used)) void process_timer_interrupt()
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
 */
-void enqueue (process_t * current, process_t * old) {
-        if(!current) { 
-            current = old;
-            return;
-        } else {
-            process_t * temp = current;
-            
-            while(temp->next != NULL) {
-                temp = temp->next;
-            }
-
-            temp->next = old;
-            return;
-        }
+void enqueue_ready (process_t * old) {
+    tail->next = old;
+    tail = tail->next;
 }
 __attribute__((used)) unsigned int process_select (unsigned int cursp) {
     // no current process
@@ -181,7 +170,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
         old->next = NULL;
         
         // add to the end of the queue 
-        enqueue(current_process, old);
+        enqueue_ready(old);
 
         //return the next stack pointer
         return current_process->sp;
@@ -210,11 +199,14 @@ int process_create (void (*f)(void), int n) {
     new_process->sp = new_sp;
     new_process->next = NULL;
     
-    // if there are no current process
-    if(!current_process) current_process = new_process;
+    // if there are no current processes 
+    if(!current_process) {
+      current_process = new_process;
+      tail = current_process;
+    }
     
     // put at the end of the queue 
-    else enqueue(current_process, new_process);
+    else enqueue_ready(new_process);
    
     return 0;
 }

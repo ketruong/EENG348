@@ -34,12 +34,10 @@ void setup()
    Serial.begin(9600);
    
    if (process_create (p1, 32) < 0) {
-      Serial.println("p1 dead");
       return;
    }
  
    if (process_create (p2, 32) < 0) {
-      Serial.println("p2 dead");
       return;
    }
    

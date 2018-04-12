@@ -176,8 +176,8 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 
         // go to the next process
         current_process = current_process->next;
-        
-        // next is NULL
+
+	// next is NULL
         old->next = NULL;
         
         // add to the end of the queue 

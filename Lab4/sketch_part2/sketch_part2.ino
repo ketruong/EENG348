@@ -25,6 +25,19 @@ void blink1 (void)
   }
 }
 
+void blink5 (void)
+{
+  while (1) {
+    lock_acquire (&m);
+    digitalWrite (5, HIGH);
+    delay (1000);
+    digitalWrite (5, LOW);
+    delay (1000);
+    lock_release (&m);
+  }
+}
+
+
 void blink2 (void)
 {
    while (1) {
@@ -32,6 +45,7 @@ void blink2 (void)
       delay (500);
       digitalWrite (2, LOW);
       delay (500);
+
    }
 }
 
@@ -73,15 +87,16 @@ void setup() {
   
   Serial.println("Lock Created Good");
 
-  //Serial.println(m.locked);
   process_create (blink1, 32);
-  process_create (blink2, 32);
-
-  Serial.println("Blink 2 Good");
-  process_create (blink3, 32);
-  Serial.println("Blink 3 Good");
+  //Serial.println("Blink 1 Good");
+  //process_create (blink2, 32);
+  //Serial.println("Blink 2 Good");
+  //process_create (blink3, 32);
+  //Serial.println("Blink 3 Good");
   process_create (blink4, 32);
-  Serial.println("Blink 4 Good");
+  //Serial.println("Blink 4 Good");
+  process_create (blink5, 32);
+  //Serial.println("Blink 5 Good");
 }
 
 

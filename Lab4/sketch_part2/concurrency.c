@@ -172,11 +172,9 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
         // remember current process and send to the end
         process_t * old = current_process; 
         old->sp = cursp; 
-        if (current_process->block) {
-            current_process = current_process->next;
-            old->next = NULL;
-            return current_process->sp;
-        }
+        
+        // if there are only one process 
+        if(!current_process->next) return old->sp;
 
         // go to the next process
         current_process = current_process->next;
@@ -185,7 +183,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
         old->next = NULL;
         
         // add to the end of the queue 
-        enqueue(current_process, old);
+        if(!old->block) enqueue(current_process, old);
 
         //return the next stack pointer
         return current_process->sp;
@@ -224,32 +222,31 @@ int process_create (void (*f)(void), int n) {
    
     return 0;
 }
-
+// set the current lock queue to NULL
 void lock_init (lock_t *l) {
     l->curr = NULL;
     l->locked = NULL;
 }
-
+// acquire the lock 
 void lock_acquire (lock_t *l) {
-    if(!l->curr && current_process && !current_process->block) {
+    asm volatile ("cli\n\t");
+    if(!l->curr) { 
         l->curr = current_process;
-        return;
-    } else if(l->curr != current_process) {
+    } else if(l->curr) {
+        l->locked = current_process;
         current_process->block = 1;
-        enqueue(l->locked, current_process);
         yield();
     }
+    asm volatile ("sei\n\t");
 }
 
 void lock_release (lock_t *l) {
-    if(l->curr == current_process) {
-        process_t * temp = l->locked;
-        l->curr= NULL;
-        l->locked = NULL;
-        temp->block = 0;
-        temp->next = current_process ;
-        enqueue(current_process->next, temp);
-    }
+    asm volatile ("cli\n\t");
+    process_t * temp = dequeue(l->locked); 
+    enqueue(current_process, l->curr);
+    l->curr = temp;
+    temp->block = 0;
+    asm volatile ("sei\n\t");
 }
 
 

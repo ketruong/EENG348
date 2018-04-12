@@ -98,6 +98,16 @@ void lock_4(){
   process_create (blink5, 32);
 }
 
+// only unlocked processes
+void lock_5(){
+  process_create (blink2, 32);
+  process_create (blink3, 32);
+}
+
+// no processes
+void lock_6(){
+  
+}
 
 
 void setup() {
@@ -111,7 +121,7 @@ void setup() {
   
   Serial.println("Lock Created Good");
 
-  lock_4();
+  lock_3();
 }
 
 

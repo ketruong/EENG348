@@ -52,7 +52,6 @@ int process_create (void (*f)(void), int n);
 /* Create a new process */
 
 
-
 /* ===== Part 2 ====== */
 
 /* you have to define the lock_state structure */

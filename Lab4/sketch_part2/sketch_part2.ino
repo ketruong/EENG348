@@ -6,9 +6,9 @@ void blink1 (void)
 {
   while (1) {
     lock_acquire (&m);
-    digitalWrite (4, HIGH);
+    digitalWrite (8, HIGH);
     delay (500);
-    digitalWrite (4, LOW);
+    digitalWrite (8, LOW);
     delay (500);
     lock_release (&m);
   }
@@ -18,9 +18,9 @@ void blink2 (void)
 {
    while (1) {
       //lock_acquire (&m);
-      digitalWrite (2, HIGH);
+      digitalWrite (10, HIGH);
       delay (500);
-      digitalWrite (2, LOW);
+      digitalWrite (10, LOW);
       delay (500);
       //lock_release (&m);
    }
@@ -30,26 +30,24 @@ void blink2 (void)
 void blink3 (void)
 {
    while (1) {
-      //lock_acquire (&m);
-      digitalWrite (3, HIGH);
+      digitalWrite (9, HIGH);
       delay (500);
-      digitalWrite (3, LOW);
+      digitalWrite (9, LOW);
       delay (500);
-      //lock_release (&m);
-   }
+  }
 }
 
 void blink4 (void)
 {
   while (1) {
       lock_acquire (&m);
-      digitalWrite (4, HIGH);
+      digitalWrite (8, HIGH);
       delay (100);
-      digitalWrite (4, LOW);
+      digitalWrite (8, LOW);
       delay (100);
-      digitalWrite (4, HIGH);
+      digitalWrite (8, HIGH);
       delay (100);
-      digitalWrite (4, LOW);
+      digitalWrite (8, LOW);
       delay (100);
       lock_release (&m);
   }
@@ -59,12 +57,24 @@ void blink5 (void)
 {
   while (1) {
     lock_acquire (&m);
-    digitalWrite (5, HIGH);
+    digitalWrite (13, HIGH);
     delay (200);
-    digitalWrite (5, LOW);
+    digitalWrite (13, LOW);
     delay (200);
     lock_release (&m);
   }
+}
+
+void blink6 (void)
+{
+    digitalWrite (9, HIGH);
+    delay (500);
+    digitalWrite (9, LOW);
+    delay (500);
+    digitalWrite (9, HIGH);
+    delay (500);
+    digitalWrite (9, LOW);
+    delay (500);    
 }
 
 // one locked process
@@ -109,21 +119,29 @@ void lock_6(){
   
 }
 
+// one terminate process
+void lock_7(){
+  process_create (blink1, 32);
+  process_create (blink2, 32);
+  process_create (blink4, 32);
+  process_create (blink5, 32);
+  process_create (blink6, 32);
+}
+
 
 void setup() {
   // put your setup code here, to run once: 
-  pinMode (2, OUTPUT);
-  pinMode (3, OUTPUT);
-  pinMode (4, OUTPUT);
-  pinMode (5, OUTPUT);
+  pinMode (8, OUTPUT);
+  pinMode (9, OUTPUT);
+  pinMode (10, OUTPUT);
+  pinMode (13, OUTPUT);
   Serial.begin (9600);
   lock_init (&m);
   
   Serial.println("Lock Created Good");
 
-  lock_3();
+  lock_7();
 }
-
 
 void loop() {
   Serial.println ("start...");

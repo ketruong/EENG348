@@ -168,7 +168,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
        return current_process->sp;
 
     // finished process
-    } else if (!cursp && run_flag) {
+    } else if (!cursp && run_flag && current_process) {
        process_t * old = current_process; 
        current_process = current_process->next;
        old->next = NULL;

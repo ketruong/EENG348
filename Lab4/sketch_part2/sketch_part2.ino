@@ -7,9 +7,9 @@ void blink1 (void)
   while (1) {
     lock_acquire (&m);
     digitalWrite (8, HIGH);
-    delay (500);
+    delay (5000);
     digitalWrite (8, LOW);
-    delay (500);
+    delay (5000);
     lock_release (&m);
   }
 }
@@ -17,12 +17,10 @@ void blink1 (void)
 void blink2 (void)
 {
    while (1) {
-      //lock_acquire (&m);
       digitalWrite (10, HIGH);
       delay (500);
       digitalWrite (10, LOW);
       delay (500);
-      //lock_release (&m);
    }
 }
 

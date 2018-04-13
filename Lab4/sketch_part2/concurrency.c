@@ -1,8 +1,14 @@
 #include <stdio.h>
 #include <avr/io.h>
 #include "concurrency.h"
-
-process_t * current_process = NULL; 
+/*   current_process implements both the current_process global variable
+ *   as well as the readyQ, where the readyQ is defined as
+ *   current_process->next. tail enables fast dequeuing. run_flag is a
+ *   global variable used so that process_select is able to distinguish
+ *   between situations in which a process has just terminated or if the
+ *   system has just been initialized.
+ */
+process_t * current_process = NULL;
 process_t * tail = NULL;
 int run_flag = 0;
 
@@ -11,29 +17,29 @@ __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 __attribute__((used)) void process_begin ()
 {
   asm volatile (
-		"cli \n\t"
-		"in r24,__SP_L__ \n\t"
-		"sts _orig_sp_lo, r24\n\t"
-		"in r25,__SP_H__ \n\t"
-		"sts _orig_sp_hi, r25\n\t"
-		"ldi r24, 0\n\t"
-		"ldi r25, 0\n\t"
-		"rjmp .dead_proc_entry\n\t"
-		);
+    "cli \n\t"
+    "in r24,__SP_L__ \n\t"
+    "sts _orig_sp_lo, r24\n\t"
+    "in r25,__SP_H__ \n\t"
+    "sts _orig_sp_hi, r25\n\t"
+    "ldi r24, 0\n\t"
+    "ldi r25, 0\n\t"
+    "rjmp .dead_proc_entry\n\t"
+    );
 }
 
 __attribute__((used)) void process_terminated ()
 {
   asm volatile (
-		"cli\n\t"
-		"lds r25, _orig_sp_hi\n\t"
-		"out __SP_H__, r25\n\t"
-		"lds r24, _orig_sp_lo\n\t"
-		"out __SP_L__, r24\n\t"
-		"ldi r24, lo8(0)\n\t"
-		"ldi r25, hi8(0)\n\t"
-		"rjmp .dead_proc_entry"
-		);
+    "cli\n\t"
+    "lds r25, _orig_sp_hi\n\t"
+    "out __SP_H__, r25\n\t"
+    "lds r24, _orig_sp_lo\n\t"
+    "out __SP_L__, r24\n\t"
+    "ldi r24, lo8(0)\n\t"
+    "ldi r25, hi8(0)\n\t"
+    "rjmp .dead_proc_entry"
+    );
 }
 
 void process_timer_interrupt ();
@@ -48,91 +54,91 @@ __attribute__((used)) void yield ()
 __attribute__((used)) void process_timer_interrupt()
 {
   asm volatile (
-		"push r31\n\t"
-		"push r30\n\t"
-		"push r29\n\t"
-		"push r28\n\t"
-		"push r27\n\t"
-		"push r26\n\t"
-		"push r25\n\t"
-		"push r24\n\t"
-		"push r23\n\t"
-		"push r22\n\t"
-		"push r21\n\t"
-		"push r20\n\t"
-		"push r19\n\t"
-		"push r18\n\t"
-		"push r17\n\t"
-		"push r16\n\t"
-		"push r15\n\t"
-		"push r14\n\t"
-		"push r13\n\t"
-		"push r12\n\t"
-		"push r11\n\t"
-		"push r10\n\t"
-		"push r9\n\t"
-		"push r8\n\t"
-		"push r7\n\t"
-		"push r6\n\t"
-		"push r5\n\t"
-		"push r4\n\t"
-		"push r3\n\t"
-		"push r2\n\t"
-		"push r1\n\t"
-		"push r0\n\t"
-		"in r24, __SREG__\n\t"
-		"push r24\n\t"
-		"in r24, __SP_L__\n\t"
-		"in r25, __SP_H__\n\t"
-		".dead_proc_entry:\n\t"
-		"rcall process_select\n\t"
-		"eor r18,r18\n\t"
-		"or r18,r24\n\t"
-		"or r18,r25\n\t"
-		"brne .label_resume\n\t"
-		"lds r25, _orig_sp_hi\n\t"
-		"out __SP_H__, r25\n\t"
-		"lds r24, _orig_sp_lo\n\t"
-		"out __SP_L__, r24\n\t"
-		"ret\n\t"
-		".label_resume:\n\t"
-		"out __SP_L__, r24\n\t"
-		"out __SP_H__, r25\n\t"
-		"pop r0\n\t"
-		"out  __SREG__, r0\n\t"
-		"pop r0\n\t"
-		"pop r1\n\t"
-		"pop r2\n\t"
-		"pop r3\n\t"
-		"pop r4\n\t"
-		"pop r5\n\t"
-		"pop r6\n\t"
-		"pop r7\n\t"
-		"pop r8\n\t"
-		"pop r9\n\t"
-		"pop r10\n\t"
-		"pop r11\n\t"
-		"pop r12\n\t"
-		"pop r13\n\t"
-		"pop r14\n\t"
-		"pop r15\n\t"
-		"pop r16\n\t"
-		"pop r17\n\t"
-		"pop r18\n\t"
-		"pop r19\n\t"
-		"pop r20\n\t"
-		"pop r21\n\t"
-		"pop r22\n\t"
-		"pop r23\n\t"
-		"pop r24\n\t"
-		"pop r25\n\t"
-		"pop r26\n\t"
-		"pop r27\n\t"
-		"pop r28\n\t"
-		"pop r29\n\t"
-		"pop r30\n\t"
-		"pop r31\n\t"
-		"reti\n\t");
+    "push r31\n\t"
+    "push r30\n\t"
+    "push r29\n\t"
+    "push r28\n\t"
+    "push r27\n\t"
+    "push r26\n\t"
+    "push r25\n\t"
+    "push r24\n\t"
+    "push r23\n\t"
+    "push r22\n\t"
+    "push r21\n\t"
+    "push r20\n\t"
+    "push r19\n\t"
+    "push r18\n\t"
+    "push r17\n\t"
+    "push r16\n\t"
+    "push r15\n\t"
+    "push r14\n\t"
+    "push r13\n\t"
+    "push r12\n\t"
+    "push r11\n\t"
+    "push r10\n\t"
+    "push r9\n\t"
+    "push r8\n\t"
+    "push r7\n\t"
+    "push r6\n\t"
+    "push r5\n\t"
+    "push r4\n\t"
+    "push r3\n\t"
+    "push r2\n\t"
+    "push r1\n\t"
+    "push r0\n\t"
+    "in r24, __SREG__\n\t"
+    "push r24\n\t"
+    "in r24, __SP_L__\n\t"
+    "in r25, __SP_H__\n\t"
+    ".dead_proc_entry:\n\t"
+    "rcall process_select\n\t"
+    "eor r18,r18\n\t"
+    "or r18,r24\n\t"
+    "or r18,r25\n\t"
+    "brne .label_resume\n\t"
+    "lds r25, _orig_sp_hi\n\t"
+    "out __SP_H__, r25\n\t"
+    "lds r24, _orig_sp_lo\n\t"
+    "out __SP_L__, r24\n\t"
+    "ret\n\t"
+    ".label_resume:\n\t"
+    "out __SP_L__, r24\n\t"
+    "out __SP_H__, r25\n\t"
+    "pop r0\n\t"
+    "out  __SREG__, r0\n\t"
+    "pop r0\n\t"
+    "pop r1\n\t"
+    "pop r2\n\t"
+    "pop r3\n\t"
+    "pop r4\n\t"
+    "pop r5\n\t"
+    "pop r6\n\t"
+    "pop r7\n\t"
+    "pop r8\n\t"
+    "pop r9\n\t"
+    "pop r10\n\t"
+    "pop r11\n\t"
+    "pop r12\n\t"
+    "pop r13\n\t"
+    "pop r14\n\t"
+    "pop r15\n\t"
+    "pop r16\n\t"
+    "pop r17\n\t"
+    "pop r18\n\t"
+    "pop r19\n\t"
+    "pop r20\n\t"
+    "pop r21\n\t"
+    "pop r22\n\t"
+    "pop r23\n\t"
+    "pop r24\n\t"
+    "pop r25\n\t"
+    "pop r26\n\t"
+    "pop r27\n\t"
+    "pop r28\n\t"
+    "pop r29\n\t"
+    "pop r30\n\t"
+    "pop r31\n\t"
+    "reti\n\t");
 }
 
 /*
@@ -141,13 +147,13 @@ __attribute__((used)) void process_timer_interrupt()
 #define EXTRA_SPACE 37
 #define EXTRA_PAD 4
 
-// add to ready queue 
+// add some process old to the ready queue 
 void enqueue_ready (process_t * old) {
     tail->next = old;
     tail = tail->next;
 }
 
-// add to lock queue
+// add some process old to lock queue
 void enqueue_locked (process_t * locked, process_t * old) {
     process_t * temp = locked;
     while (temp->next) temp = temp->next;
@@ -162,12 +168,12 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
     // no current process
     if (!current_process) return 0;
     
-    // not running yet
+    // run_flag not yet raised, so need to initialize stack pointer
     if (cursp == 0 && !run_flag) {
        run_flag = 1;
        return current_process->sp;
 
-    // finished process
+    // a process has terminated, so need to free it and pop a new process from readyQ
     } else if (!cursp && run_flag && current_process) {
        process_t * old = current_process; 
        current_process = current_process->next;
@@ -176,19 +182,20 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
        if (!current_process) return 0;
        return current_process->sp;
        
-       // there is a process and go to next  
+    // else there is a current process, and we need to get the next process from the queue
     } else { 
         // remember current process and send to the end
         process_t * old = current_process; 
         old->sp = cursp; 
         
-        // if there are only one process 
+        // if there exists only one process, return its sp and resume progress on it
         if(!current_process->next) return old->sp;
 
         // go to the next process
         current_process = current_process->next;
         
-        // next is NULL
+        // next on the old process points to NULL
+        // necessary because we're about to enqueue it
         old->next = NULL;
         
         // add to the end of the queue 
@@ -234,27 +241,30 @@ int process_create (void (*f)(void), int n) {
    
     return 0;
 }
-// set the current lock queue to NULL
+
+// lock_init sets the current lock queue to NULL
 void lock_init (lock_t *l) {
     l->curr = NULL;
     l->locked = NULL;
 }
-// acquire the lock 
+
+// current_process attempts to acquire the lock
 void lock_acquire (lock_t *l) {
-    asm volatile ("cli\n\t");
+    asm volatile ("cli\n\t"); // clear interrupts
     
-    // process gets the lock 
+    // process gets the lock if no other process has the lock
     if(!l->curr) l->curr = current_process;
     
-        
-    // if another process tries to get the lock 
+    // if another process already has the lock
     else if(l->curr != current_process) {
       
-        // add to lock queue 
+        // add current_process to lock queue
+        // if there's nothing in the queue, head of the queue = current_process
         if(!l->locked) l->locked = current_process;
+        // else add it to the queue
         else enqueue_locked(l->locked, current_process);
  
-        // now blocked 
+        // this process is blocked, so update its blocked var
         current_process->block = 1;
 
         // go to the next process 
@@ -263,36 +273,38 @@ void lock_acquire (lock_t *l) {
     asm volatile ("sei\n\t");
 }
 
+// current process gives up the lock
 void lock_release (lock_t *l) {
     asm volatile ("cli\n\t");
-    // 
+    
+    // if there's nothing in the queue, queue head is set to NULL
     if(!l->locked) {
       l->curr = NULL;
       return;
     }
     
-    // next process gets the lock 
+    // there's something in the waiting queue, and next queued process gets the lock 
     l->curr = l->locked;
     
-    // get first item off the locked queue
+    // get first item off the locked (waiting) queue
     process_t * temp  = l->locked;
     process_t * old = current_process;
 
-    // go to the next item in the locked queue 
+    // increment the locked (waiting) queue
     l->locked = l->locked->next; 
     
-    //putting on the end of the ready queue
+    // prep dequeued process for placement at the end of the ready queue
     temp->next = NULL;
     
-    // no longer blocked 
+    // dequeued process is no longer blocked 
     temp->block = 0;
 
-    // push onto the ready queue
+    // push dequeued process onto the ready queue
     if(!current_process) current_process = temp; 
     else enqueue_ready(temp);
 
     // old process gets blocked 
-    old->block = 1; 
+    // old->block = 1; 
     asm volatile ("sei\n\t");
 }
 

@@ -4,6 +4,7 @@
 
 process_t * current_process = NULL; 
 process_t * tail = NULL;
+int run_flag = 0;
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
 __attribute__((used)) void process_begin ()
@@ -152,10 +153,21 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
     if (!current_process) return 0;
     
     // not running yet
-    if (cursp == 0)  return current_process->sp;
+    if (cursp == 0 && !run_flag) {
+       run_flag = 1;
+       return current_process->sp;
 
-    // there is a process and go to next  
-    else { 
+    // finished process
+    } else if (!cursp && run_flag) {
+       process_t * old = current_process; 
+       current_process = current_process->next;
+       old->next = NULL;
+       free(old);
+       if (!current_process) return 0;
+       return current_process->sp;
+       
+       // there is a process and go to next  
+    } else { 
         // remember current process and send to the end
         process_t * old = current_process;
         old->sp = cursp;

@@ -1,15 +1,16 @@
 #include "concurrency.h"
 int led_pin = 13;
-int white = 3;
-int blue = 2;
+int led_pin1 = 10;
+int blue = 9;
+int green = 8;
 
 void p1 (void)
 {
   /* process 1 here */
   while(1) {
-    digitalWrite (white, HIGH);
+    digitalWrite (green, HIGH);
     delay (500);
-    digitalWrite (white, LOW);
+    digitalWrite (green, LOW);
     delay (500);
   }
 }
@@ -22,15 +23,39 @@ void p2 (void)
       delay (500);
       digitalWrite (blue, LOW);
       delay (500);
-    } 
-    
+    }   
+}
+
+void p3 (void)
+{  
+      digitalWrite (led_pin, HIGH);
+      delay (500);
+      digitalWrite (led_pin, LOW);
+      delay (500);
+       digitalWrite (led_pin, HIGH);
+      delay (500);
+      digitalWrite (led_pin, LOW);
+      delay (500);  
+}
+
+void p4 (void)
+{  
+      digitalWrite (led_pin1, HIGH);
+      delay (500);
+      digitalWrite (led_pin1, LOW);
+      delay (500);
+       digitalWrite (led_pin1, HIGH);
+      delay (500);
+      digitalWrite (led_pin1, LOW);
+      delay (500);  
 }
 
 void setup()
 {
-   pinMode(led_pin, OUTPUT);
-   pinMode(white, OUTPUT);
+ 
+   pinMode(green, OUTPUT);
    pinMode(blue, OUTPUT);
+   pinMode(led_pin, OUTPUT);
    Serial.begin(9600);
    
    if (process_create (p1, 32) < 0) {
@@ -40,13 +65,20 @@ void setup()
    if (process_create (p2, 32) < 0) {
       return;
    }
+   // terminating process 
+   if (process_create (p3, 32) < 0) {
+      return;
+   }
+
+   // terminating process
+   if (process_create (p4, 32) < 0) {
+      return;
+   }
    
 }
 
 void loop()
 {
- // p1();
-  process_start();
-  
+  process_start(); 
 }
 

@@ -150,26 +150,27 @@ void enqueue_ready (process_t * old) {
     tail = tail->next;
 }
 __attribute__((used)) unsigned int process_select (unsigned int cursp) {
-    
     // not running yet
-    if (cursp == 0 && !current_process) {
+    if (!run_flag && !cursp) {
        run_flag = 1;
-       current_process = ready_queue;
        return current_process->sp;
-
+       
     // finished process
     } else if (!cursp && run_flag) {
+       current_process = ready_queue;
        process_t * old = current_process; 
        current_process = current_process->next;
+       ready_queue = current_process;
+       current_process = old;
        old->next = NULL;
-       free(old);
-       if (!current_process) return 0;
-       
-       return current_process->sp;
+       free(old);   
+
+       return ready_queue->sp;
        
        // there is a process and go to next  
     } else { 
         // remember current process and send to the end
+        current_process = ready_queue;
         process_t * old = current_process;
         old->sp = cursp;
         
@@ -184,13 +185,14 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
         
         // add to the end of the queue 
         enqueue_ready(old);
-
+        ready_queue = current_process;
         //return the next stack pointer
         return current_process->sp;
    }
 }
 /* Starts up the concurrent execution */
 void process_start (void) {
+    current_process = ready_queue;
     process_begin();
 }
 

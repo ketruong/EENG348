@@ -1,8 +1,8 @@
 #include "concurrency.h"
 int led_pin = 13;
-int led_pin1 = 10;
+int led_pin1 = 8;
 int blue = 9;
-int green = 8;
+int green = 10;
 
 void p1 (void)
 {

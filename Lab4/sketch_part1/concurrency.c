@@ -2,6 +2,7 @@
 #include <avr/io.h>
 #include "concurrency.h"
 
+process_t * ready_queue = NULL; 
 process_t * current_process = NULL; 
 process_t * tail = NULL;
 int run_flag = 0;
@@ -149,12 +150,11 @@ void enqueue_ready (process_t * old) {
     tail = tail->next;
 }
 __attribute__((used)) unsigned int process_select (unsigned int cursp) {
-    // no current process
-    if (!current_process) return 0;
     
     // not running yet
-    if (cursp == 0 && !run_flag) {
+    if (cursp == 0 && !current_process) {
        run_flag = 1;
+       current_process = ready_queue;
        return current_process->sp;
 
     // finished process
@@ -164,6 +164,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
        old->next = NULL;
        free(old);
        if (!current_process) return 0;
+       
        return current_process->sp;
        
        // there is a process and go to next  
@@ -212,9 +213,9 @@ int process_create (void (*f)(void), int n) {
     new_process->next = NULL;
     
     // if there are no current processes 
-    if(!current_process) {
-      current_process = new_process;
-      tail = current_process;
+    if(!ready_queue) {
+      ready_queue = new_process;
+      tail = ready_queue ;
     }
     
     // put at the end of the queue 

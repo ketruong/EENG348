@@ -8,8 +8,9 @@
  *   between situations in which a process has just terminated or if the
  *   system has just been initialized.
  */
-process_t * current_process = NULL;
+process_t * ready_queue = NULL;
 process_t * tail = NULL;
+process_t * current_process = NULL;
 int run_flag = 0;
 
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
@@ -165,12 +166,10 @@ void enqueue_locked (process_t * locked, process_t * old) {
 */
 __attribute__((used)) unsigned int process_select (unsigned int cursp) {
     
-    // no current process
-    if (!current_process) return 0;
-    
     // run_flag not yet raised, so need to initialize stack pointer
-    if (cursp == 0 && !run_flag) {
+    if (cursp == 0 && !current_process) {
        run_flag = 1;
+       current_process = ready_queue;
        return current_process->sp;
 
     // a process has terminated, so need to free it and pop a new process from readyQ
@@ -231,9 +230,9 @@ int process_create (void (*f)(void), int n) {
     new_process->block = 0;
     
     // if there are no current processes 
-    if(!current_process) {
-      current_process = new_process;
-      tail = current_process;
+    if(!ready_queue) {
+      ready_queue = new_process;
+      tail = ready_queue;
     }
 
     // else add to the end of the queue 
@@ -300,11 +299,9 @@ void lock_release (lock_t *l) {
     temp->block = 0;
 
     // push dequeued process onto the ready queue
-    if(!current_process) current_process = temp; 
+    if(!ready_queue) ready_queue = temp; 
     else enqueue_ready(temp);
 
-    // old process gets blocked 
-    // old->block = 1; 
     asm volatile ("sei\n\t");
 }
 

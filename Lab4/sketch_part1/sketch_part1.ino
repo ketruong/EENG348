@@ -40,13 +40,13 @@ void p3 (void)
 
 void p4 (void)
 {  
-      digitalWrite (led_pin1, HIGH);
+      digitalWrite (8, HIGH);
       delay (500);
-      digitalWrite (led_pin1, LOW);
+      digitalWrite (8, LOW);
       delay (500);
-       digitalWrite (led_pin1, HIGH);
+       digitalWrite (8, HIGH);
       delay (500);
-      digitalWrite (led_pin1, LOW);
+      digitalWrite (8, LOW);
       delay (500);  
 }
 
@@ -56,6 +56,7 @@ void setup()
    pinMode(green, OUTPUT);
    pinMode(blue, OUTPUT);
    pinMode(led_pin, OUTPUT);
+   pinMode(8, OUTPUT);
    Serial.begin(9600);
    
    if (process_create (p1, 32) < 0) {

@@ -167,22 +167,26 @@ void enqueue_locked (process_t * locked, process_t * old) {
 __attribute__((used)) unsigned int process_select (unsigned int cursp) {
     
     // run_flag not yet raised, so need to initialize stack pointer
-    if (cursp == 0 && !current_process) {
+    if (!cursp && !run_flag) {
        run_flag = 1;
-       current_process = ready_queue;
        return current_process->sp;
 
     // a process has terminated, so need to free it and pop a new process from readyQ
     } else if (!cursp && run_flag && current_process) {
+       current_process = ready_queue;
        process_t * old = current_process; 
        current_process = current_process->next;
+       ready_queue = current_process;
+       current_process = old;
        old->next = NULL;
        free(old);
-       if (!current_process) return 0;
-       return current_process->sp;
+
+       return ready_queue->sp;
        
     // else there is a current process, and we need to get the next process from the queue
     } else { 
+        current_process = ready_queue;
+        
         // remember current process and send to the end
         process_t * old = current_process; 
         old->sp = cursp; 
@@ -199,7 +203,8 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
         
         // add to the end of the queue 
         if(!old->block) enqueue_ready(old);
-   
+        
+        ready_queue = current_process;
         //return the next stack pointer
         return current_process->sp;
    }
@@ -207,6 +212,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 
 /* Starts up the concurrent execution */
 void process_start (void) {
+    current_process = ready_queue;
     process_begin();
 }
 
@@ -250,7 +256,7 @@ void lock_init (lock_t *l) {
 // current_process attempts to acquire the lock
 void lock_acquire (lock_t *l) {
     asm volatile ("cli\n\t"); // clear interrupts
-    
+   
     // process gets the lock if no other process has the lock
     if(!l->curr) l->curr = current_process;
     
@@ -265,7 +271,7 @@ void lock_acquire (lock_t *l) {
  
         // this process is blocked, so update its blocked var
         current_process->block = 1;
-
+        
         // go to the next process 
         yield();
     }
@@ -275,7 +281,7 @@ void lock_acquire (lock_t *l) {
 // current process gives up the lock
 void lock_release (lock_t *l) {
     asm volatile ("cli\n\t");
-    
+    current_process = ready_queue;
     // if there's nothing in the queue, queue head is set to NULL
     if(!l->locked) {
       l->curr = NULL;
@@ -302,6 +308,7 @@ void lock_release (lock_t *l) {
     if(!ready_queue) ready_queue = temp; 
     else enqueue_ready(temp);
 
+    ready_queue = current_process;
     asm volatile ("sei\n\t");
 }
 

@@ -193,6 +193,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
 /* Starts up the concurrent execution */
 void process_start (void) {
     current_process = ready_queue;
+    if(!current_process) return;
     process_begin();
 }
 

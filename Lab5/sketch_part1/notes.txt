@@ -1,0 +1,13 @@
+process_select()
+- if blocked don't add to ready queue
+
+lock_init()
+- initialize lock queue and current process pointer
+
+lock_aquire()
+- if unlock acquire
+- else put on lock queue and signal the flag for that current process and yield
+
+lock_release()
+- check if unlock an unlocked lock
+- else the blocked process gets the lock and gets added to the ready queue

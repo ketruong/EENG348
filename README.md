@@ -6,6 +6,7 @@ This is the github repository for all projects in EENG348/CPSC338.
   * **Lab 2** - (https://github.com/ketruong/EENG348/tree/master/Lab2)
   * **Lab 3** - (https://github.com/ketruong/EENG348/tree/master/Lab3)
   * **Lab 4** - (https://github.com/ketruong/EENG348/tree/master/Lab4)
+  * **Lab 5** - (https://github.com/ketruong/EENG348/tree/master/Lab5)
   * **Final Project** - (https://github.com/ketruong/EENG348/tree/master/final_project)
 
 ## Authors

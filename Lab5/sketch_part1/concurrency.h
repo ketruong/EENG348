@@ -16,9 +16,12 @@ typedef struct process_state {
     unsigned int sp; /* stack pointer */
     struct process_state *next; /* link to next process */
     int block;
-    unsigned char prio;
-    unsigned int wcet;
+    unsigned int prio;
     unsigned int deadline;
+    unsigned int wcet;
+    int started;
+    unsigned long elapsed;
+    void (*f)(void);
 } process_t;
 
 typedef struct lock_state {
@@ -43,10 +46,6 @@ typedef struct lock_state {
 extern process_t * current_process; 
 extern process_t * tail; 
 
-// merge sort
-process_t * sorted  (process_t* a, process_t* b);
-void split (process_t* source, process_t** frontRef, process_t** backRef);
-
 __attribute__((used)) unsigned int process_select (unsigned int cursp);
 /* Called by the runtime system to select another process.
    "cursp" = the stack pointer for the currently running process
@@ -61,7 +60,7 @@ int process_create (void (*f)(void), int n);
 int process_create_prio (void (*f)(void), int n, unsigned char prio); 
 /* Create a new process with priority  */
 
-int process_create_rtjob (void (*f)(void), int unsigned int wcet, unsigned int deadline);
+int process_create_rtjob (void (*f)(void), int n ,unsigned int wcet, unsigned int deadline);
 /* Create a new process with priority based on */
 
 /* lock */
@@ -74,6 +73,7 @@ void lock_release (lock_t *l);
 
 unsigned int process_init (void (*f) (void), int n);
 void process_begin ();
+void process_timer_interrupt();
 void yield ();
 
 #ifdef __cplusplus

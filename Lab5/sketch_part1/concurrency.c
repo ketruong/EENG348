@@ -149,75 +149,36 @@ __attribute__((used)) void process_timer_interrupt()
 #define EXTRA_PAD 4
 
 
-void mergeSort(process_t ** start) {
-    process_t * head = *start;
-    process_t * fir_half;
-    process_t * sec_half;
-     
-    /* Base case -- length 0 or 1 */
-    if (!head || !head->next) return;
-     
-    /* Split head into sublists */
-    split(head, &fir_half, &sec_half); 
-     
-    /* Recursively sort the sublists */
-    mergeSort(&fir_half);
-    mergeSort(&sec_half);
-     
-    /* answer = merge the two sorted lists together */
-    *start= sorted(fir_half, sec_half);
-}
- 
-process_t * sorted (process_t * fir_half, process_t * sec_half) {
-    process_t * result = NULL;
-     
-    /* Base cases */
-    if (!fir_half) return sec_half;
-    else if (!sec_half) return fir_half;
-     
-    /* Pick either first half or second half, and recur */
-    if (fir_half->prio  <= sec_half->prio) {
-        result = fir_half;
-        result->next = sorted(fir_half->next, sec_half);
-    } else {
-        result = sec_half;
-        result->next = sorted(fir_half, sec_half->next);
-    }
-    return result;
-}
- 
-/* Split the nodes of the given list into front and back halves,
-    and return the two lists using the reference parameters.
-    If the length is odd, the extra node should go in the front list.
-    Uses the fast/slow pointer strategy. */
-void split (process_t * source, process_t ** front, process_t ** back) {
-    process_t * fast;
-    process_t * slow;
-    slow = source;
-    fast = source->next;
- 
-    /* Advance 'fast' two nodes, and advance 'slow' one node */
-    while (fast) {
-        fast = fast->next;
-        if (fast) {
-            slow = slow->next;
-            fast = fast->next;
-        }
-    }
- 
-    /* 'slow' is before the midpoint in the list, so split it in two
-    at that point. */
-    *front= source;
-    *back= slow->next;
-    slow->next = NULL;
-}
-
-
-// add some process old to the ready queue 
 void enqueue_ready (process_t * old) {
-    tail->next = old;
-    tail = tail->next;
+    if (tail->prio >= old->prio) {
+        tail->next = old;
+        tail = tail->next;
+    }  else if(old->prio > ready_queue->prio) {
+        old->next = ready_queue;
+        ready_queue = old;
+    } else {
+       process_t * temp = ready_queue;
+       while (temp->next && temp->next->prio > old->prio) temp=temp->next;  
+       old->next = temp->next;
+       temp->next = old;
+    }
 }
+
+void enqueue_curr (process_t * old) {
+    if (tail->prio >= old->prio) {
+        tail->next = old;
+        tail = tail->next;
+    } else if(old->prio > old->prio) {
+        old->next = current_process;
+        current_process = old;
+    } else {
+       process_t * temp = current_process;
+       while (temp->next && temp->next->prio > old->prio) temp=temp->next;  
+       old->next = temp->next;
+       temp->next = old;
+    }
+}
+
 
 // add some process old to lock queue
 void enqueue_locked (process_t * locked, process_t * old) {
@@ -267,7 +228,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
         old->next = NULL;
         
         // add to the end of the queue 
-        if(!old->block) enqueue_ready(old);
+        if(!old->block) enqueue_curr(old);
         
         ready_queue = current_process;
         //return the next stack pointer
@@ -316,20 +277,37 @@ int process_create (void (*f)(void), int n) {
 
 /* Create a new process with a priority */
 int process_create_prio (void (*f)(void), int n, unsigned char prio) {
-    // allocate stack and get stack pointer
-    if (process_create(f,n) < 0) return -1;
-    else {
-        tail->prio = prio;
-        return 0;
+// allocate stack and get stack pointer
+    unsigned int new_sp = process_init(f,n);
+    
+    // if stack could not be allocated, error 
+    if(!new_sp) return -1;
+
+    // malloc for new process 
+    process_t* new_process = (process_t *) calloc(1, sizeof(process_t));
+
+    // if calloc fails, error
+    if(!new_process) return -1;
+    
+    // set fields
+    new_process->sp = new_sp;
+    new_process->next = NULL;
+    new_process->block = 0;
+    new_process->prio = prio;
+    
+    // if there are no current processes 
+    if(!ready_queue) {
+      ready_queue = new_process;
+      tail = ready_queue;
     }
+
+    // else add to the end of the queue 
+    else enqueue_ready(new_process);
+   
+    return 0;
 }
 
-int process_create_rtjob (void (*f)(void), int unsigned int wcet, unsigned int deadline) {
-    if (process_create(f,n) < 0) return -1;
-    else {
-        tail->prio = prio;
-        return 0;
-    }
+int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned int deadline) {
 }
 
 

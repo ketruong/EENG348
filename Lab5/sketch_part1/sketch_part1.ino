@@ -1,7 +1,7 @@
 #include "concurrency.h"
 
 lock_t m;
-
+int flag = 1 ;
 void blink1 (void)
 {
   while (1) {
@@ -68,11 +68,7 @@ void blink6 (void)
     digitalWrite (9, HIGH);
     delay (500);
     digitalWrite (9, LOW);
-    delay (500);
-    digitalWrite (9, HIGH);
-    delay (500);
-    digitalWrite (9, LOW);
-    delay (500);    
+    delay (500);  
 }
 
 void blink7 (void)
@@ -96,7 +92,39 @@ void blink8 (void)
     digitalWrite (10, HIGH);
     delay (500);
     digitalWrite (10, LOW);
-    delay (500);    
+    delay (500);   
+     digitalWrite (10, HIGH);
+    delay (500);
+    digitalWrite (10, LOW);
+    delay (500);     
+}
+
+void blink9 (void)
+{
+    while(1) {
+      digitalWrite (13, HIGH);
+      delay (500);
+      digitalWrite (13, LOW);
+      delay (500);
+      digitalWrite (13, HIGH);
+      delay (500);
+      digitalWrite (13, LOW);
+      delay (500);   
+    } 
+}
+
+void blink10 (void)
+{
+      lock_acquire (&m);
+      digitalWrite (8, HIGH);
+      delay (500);
+      digitalWrite (8, LOW);
+      delay (500);
+      digitalWrite (8, HIGH);
+      delay (500);
+      digitalWrite (8, LOW);
+      delay (500);
+      lock_release (&m);   
 }
 
 // one locked process
@@ -128,21 +156,21 @@ void lock_2 (){
 // for the lock.
 // This behavior is observed.
 void lock_3(){
-  process_create (blink1, 32);
-  process_create (blink2, 32);
-  process_create (blink3, 32);
-  process_create (blink4, 32);
-  process_create (blink5, 32);
+  process_create_rtjob(blink1, 32,200,200);
+  process_create_rtjob(blink2, 32,200,200);
+  process_create(blink3, 32);
+  process_create_prio(blink4, 32,128);
+  process_create_prio(blink5, 32,128);
 }
 
 // only locked processes
-// Expected behavior: LEDs 9 and 13 compete for the lock,
+// Expected behavior: LEDs 8 and 13 compete for the lock,
 // resulting in a pattern of alternation.
 // This behavior is observed.
 void lock_4(){
-  process_create (blink1, 32);
-  process_create (blink4, 32);
-  process_create (blink5, 32);
+  process_create_prio (blink1, 32,128);
+  process_create_prio (blink4, 32,128);
+  process_create_prio (blink5, 32,128);
 }
 
 // only unlocked processes
@@ -150,8 +178,10 @@ void lock_4(){
 // termination.
 // This behavior is observed.
 void lock_5(){
-  process_create (blink2, 32);
-  process_create (blink3, 32);
+  process_create_prio(blink2, 32,128);
+  process_create_prio(blink3, 32,128);
+  process_create_prio(blink9, 32,128);
+  //process_create(blink10, 32);
 }
 
 // no processes
@@ -185,6 +215,12 @@ void lock_8(){
   process_create (blink8, 32);
 }
 
+void lock_9(){
+  process_create_prio (blink10, 32,128);
+  process_create (blink4, 32);
+  process_create (blink5, 32);
+}
+
 void setup() {
   // put your setup code here, to run once: 
   pinMode (8, OUTPUT);
@@ -194,13 +230,12 @@ void setup() {
   Serial.begin (9600);
   lock_init (&m);
   
-  Serial.println("Lock Created Successfully");
-
-  lock_8();
+  Serial.println("Lock Created Successfully!");
+  lock_4();
 }
 
 void loop() {
   Serial.println ("start...");
-  process_start ();
+  process_start();
   Serial.println ("done!");
 }

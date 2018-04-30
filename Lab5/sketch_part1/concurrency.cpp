@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <avr/io.h>
 #include "concurrency.h"
+#include <Arduino.h> 
 /*   current_process implements both the current_process global variable
  *   as well as the readyQ, where the readyQ is defined as
  *   current_process->next. tail enables fast dequeuing. run_flag is a
@@ -12,7 +13,8 @@ process_t * ready_queue = NULL;
 process_t * tail = NULL;
 process_t * current_process = NULL;
 int run_flag = 0;
-
+unsigned mi = 0;
+unsigned ma = 0;
 __attribute__((used)) unsigned char _orig_sp_hi, _orig_sp_lo;
 
 __attribute__((used)) void process_begin ()
@@ -148,6 +150,8 @@ __attribute__((used)) void process_timer_interrupt()
 #define EXTRA_SPACE 37
 #define EXTRA_PAD 4
 
+#define min(a,b) ((a)<(b)?(a):(b))
+#define max(a,b) ((a)>(b)?(a):(b))
 
 void enqueue_ready (process_t * old) {
     if (tail->prio >= old->prio) {
@@ -158,7 +162,7 @@ void enqueue_ready (process_t * old) {
         ready_queue = old;
     } else {
        process_t * temp = ready_queue;
-       while (temp->next && temp->next->prio > old->prio) temp=temp->next;  
+       while (temp->next && temp->next->prio >= old->prio) temp=temp->next;  
        old->next = temp->next;
        temp->next = old;
     }
@@ -168,12 +172,12 @@ void enqueue_curr (process_t * old) {
     if (tail->prio >= old->prio) {
         tail->next = old;
         tail = tail->next;
-    } else if(old->prio > old->prio) {
+    } else if(old->prio > current_process->prio) {
         old->next = current_process;
         current_process = old;
     } else {
        process_t * temp = current_process;
-       while (temp->next && temp->next->prio > old->prio) temp=temp->next;  
+       while (temp->next && temp->next->prio >= old->prio) temp=temp->next;  
        old->next = temp->next;
        temp->next = old;
     }
@@ -262,6 +266,10 @@ int process_create (void (*f)(void), int n) {
     new_process->next = NULL;
     new_process->block = 0;
     new_process->prio = 128;
+    new_process->wcet = 0;
+    new_process->deadline = 0;
+    new_process->started = 0;
+    new_process->elapsed = 0;
     
     // if there are no current processes 
     if(!ready_queue) {
@@ -294,6 +302,10 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
     new_process->next = NULL;
     new_process->block = 0;
     new_process->prio = prio;
+    new_process->wcet = 0;
+    new_process->deadline = 0;
+    new_process->started = 0;
+    new_process->elapsed = 0;
     
     // if there are no current processes 
     if(!ready_queue) {
@@ -308,6 +320,68 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
 }
 
 int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned int deadline) {
+  unsigned int new_sp = process_init(f,n);
+    
+    // if stack could not be allocated, error 
+    if(!new_sp) return -1;
+
+    // malloc for new process 
+    process_t* new_process = (process_t *) calloc(1, sizeof(process_t));
+
+    // if calloc fails, error
+    if(!new_process) return -1;
+    
+    // set fields
+    new_process->sp = new_sp;
+    new_process->next = NULL;
+    new_process->block = 0;
+    new_process->wcet = wcet;
+    new_process->deadline = deadline;
+    new_process->started = 0;
+    new_process->elapsed = 0;
+
+    if(mi == 0 && ma == 0) {
+      new_process->prio = 255;
+      mi = deadline;
+      ma = deadline;
+    } else if (deadline < mi || deadline > ma){
+      mi = min(deadline, mi);
+      ma = max(deadline, ma);
+      process_t * temp = ready_queue;
+      while(temp && temp->deadline !=0) {
+        float new_prio = (temp->deadline - mi)/1.0;
+        new_prio = new_prio/(ma - mi);
+        new_prio = round(new_prio * (126));
+        temp->prio = 255 - new_prio;
+        temp = temp->next;
+      }
+        float new_prio = (deadline - mi)/1.0;
+        new_prio = new_prio/(ma - mi);
+        new_prio = round(new_prio * (126));
+        new_process->prio = 255 - new_prio;
+
+    } else {
+        float new_prio = (deadline - mi)/1.0;
+        new_prio = new_prio/(ma - mi);
+        new_prio = round(new_prio * (126));
+        new_process->prio = 255 - new_prio;
+    }
+    // if there are no current processes 
+    if(!ready_queue) {
+      ready_queue = new_process;
+      tail = ready_queue;
+    }
+    
+    // else add to the end of the queue 
+    else enqueue_ready(new_process);
+     
+     process_t * temp = ready_queue;
+     while(temp) {
+      Serial.println(temp->prio);
+      temp = temp->next;
+     }
+     Serial.println("");
+    return 0;
 }
 
 

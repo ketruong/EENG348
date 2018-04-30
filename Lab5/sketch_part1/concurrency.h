@@ -19,9 +19,8 @@ typedef struct process_state {
     unsigned int prio;
     unsigned int deadline;
     unsigned int wcet;
-    int started;
+    unsigned int started;
     unsigned long elapsed;
-    void (*f)(void);
 } process_t;
 
 typedef struct lock_state {

@@ -178,9 +178,9 @@ void lock_4(){
 // termination.
 // This behavior is observed.
 void lock_5(){
-  process_create_prio(blink2, 32,128);
-  process_create_prio(blink3, 32,128);
-  process_create_prio(blink9, 32,128);
+  process_create_rtjob(blink2, 32,200,200);
+  process_create_rtjob(blink3, 32,200,100);
+  process_create_rtjob(blink9, 32,200,300);
   //process_create(blink10, 32);
 }
 
@@ -231,7 +231,7 @@ void setup() {
   lock_init (&m);
   
   Serial.println("Lock Created Successfully!");
-  lock_4();
+  lock_5();
 }
 
 void loop() {

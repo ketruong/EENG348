@@ -179,8 +179,8 @@ void lock_4(){
 // This behavior is observed.
 void lock_5(){
   process_create_rtjob(blink2, 32,200,200);
-  process_create_rtjob(blink3, 32,200,100);
-  process_create_rtjob(blink9, 32,200,300);
+  process_create_rtjob(blink3, 32,200,300);
+  process_create_rtjob(blink9, 32,200,100);
   //process_create(blink10, 32);
 }
 
@@ -210,9 +210,9 @@ void lock_7(){
 // Expected behavior: LEDs 8, 9, and 10 blink twice, then terminate.
 // This behavior is observed.
 void lock_8(){
-  process_create (blink6, 32);
-  process_create (blink7, 32);
-  process_create (blink8, 32);
+  process_create_rtjob(blink6, 32,200,300);
+  process_create_rtjob(blink7, 32,200,100);
+  process_create_rtjob(blink8, 32, 200, 200);
 }
 
 void lock_9(){
@@ -231,7 +231,7 @@ void setup() {
   lock_init (&m);
   
   Serial.println("Lock Created Successfully!");
-  lock_5();
+  lock_8();
 }
 
 void loop() {

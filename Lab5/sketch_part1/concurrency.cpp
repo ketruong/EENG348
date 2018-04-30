@@ -199,6 +199,7 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
     // run_flag not yet raised, so need to initialize stack pointer
     if (!cursp && !run_flag) {
        run_flag = 1;
+       current_process->started = millis();
        return current_process->sp;
 
     // a process has terminated, so need to free it and pop a new process from readyQ
@@ -209,14 +210,32 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
        ready_queue = current_process;
        current_process = old;
        old->next = NULL;
+       if(old->deadline > 0) {
+          unsigned long cur_time = millis();
+          old->elapsed = old->elapsed + cur_time - old->started;
+          old->started = cur_time;
+          Serial.print("Estimated wcet: ");
+          Serial.println(old->wcet);
+          Serial.print("Real wcet: ");
+          Serial.println(old->elapsed);
+          Serial.println("");
+
+          if(old->elapsed > old->wcet) {
+            Serial.println("Deadline missed");
+  
+          }
+       }
        free(old->sp);
        free(old);
+       if(!ready_queue) return 0;
        return ready_queue->sp;
        
     // else there is a current process, and we need to get the next process from the queue
     } else { 
         current_process = ready_queue;
-        
+        unsigned int cur_time = millis();
+        current_process->elapsed = current_process->elapsed + cur_time - current_process->started;
+        current_process->started = cur_time;
         // remember current process and send to the end
         process_t * old = current_process; 
         old->sp = cursp; 
@@ -235,6 +254,10 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
         if(!old->block) enqueue_curr(old);
         
         ready_queue = current_process;
+
+        if(ready_queue->deadline > 0 && ready_queue->started ==0) ready_queue->started = millis();
+
+        
         //return the next stack pointer
         return current_process->sp;
    }
@@ -377,7 +400,9 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
      
      process_t * temp = ready_queue;
      while(temp) {
-      Serial.println(temp->prio);
+      Serial.print(temp->prio);
+      Serial.print(" ");
+      Serial.println(temp->wcet);
       temp = temp->next;
      }
      Serial.println("");

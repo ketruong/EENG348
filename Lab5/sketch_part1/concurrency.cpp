@@ -2,6 +2,7 @@
 #include <avr/io.h>
 #include "concurrency.h"
 #include <Arduino.h> 
+
 /*   current_process implements both the current_process global variable
  *   as well as the readyQ, where the readyQ is defined as
  *   current_process->next. tail enables fast dequeuing. run_flag is a
@@ -210,24 +211,49 @@ __attribute__((used)) unsigned int process_select (unsigned int cursp) {
        ready_queue = current_process;
        current_process = old;
        old->next = NULL;
+
+       /* 
+        *  Checks if it is a real time process. If it is, it will
+        *  print out the estimated worse case execution time and print
+        *  out the experimental worse case execution time. If 
+        *  the experimental is more than the estimated, an error message 
+        *  will print. 
+        */
+        
        if(old->deadline > 0) {
           unsigned long cur_time = millis();
           old->elapsed = old->elapsed + cur_time - old->started;
           old->started = cur_time;
+          
+          // print out of wcet 
           Serial.print("Estimated wcet: ");
           Serial.println(old->wcet);
           Serial.print("Real wcet: ");
           Serial.println(old->elapsed);
           Serial.println("");
 
-          if(old->elapsed > old->wcet) {
-            Serial.println("Deadline missed");
-  
-          }
+          // print out error message if bad approximation
+          if(old->elapsed > old->wcet) Serial.println("Deadline missed");
+          
        }
+
+       /* 
+        *  uncomment to add processes after process_start
+        *  only call with lock_7()
+        */
+       
+       // procress_create(old->f,32);
+       
+       // free the terminated stuff 
        free(old->sp);
        free(old);
+
+   
+
+       // stop if no more jobs 
        if(!ready_queue) return 0;
+
+       // return the next pointer 
        return ready_queue->sp;
        
     // else there is a current process, and we need to get the next process from the queue
@@ -293,6 +319,7 @@ int process_create (void (*f)(void), int n) {
     new_process->deadline = 0;
     new_process->started = 0;
     new_process->elapsed = 0;
+    new_process->f = f;
     
     // if there are no current processes 
     if(!ready_queue) {
@@ -341,7 +368,13 @@ int process_create_prio (void (*f)(void), int n, unsigned char prio) {
    
     return 0;
 }
-
+unsigned char calcPrio(unsigned int deadline) {
+    float new_prio = (deadline - mi)/1.0;
+    new_prio = new_prio/(ma - mi);
+    new_prio = round(new_prio * (126));
+    return (255 - new_prio);
+}
+/* Create a real time job */
 int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned int deadline) {
   unsigned int new_sp = process_init(f,n);
     
@@ -360,34 +393,42 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
     new_process->block = 0;
     new_process->wcet = wcet;
     new_process->deadline = deadline;
+
+    //checking to see how long the job has run for 
     new_process->started = 0;
     new_process->elapsed = 0;
 
+    /*
+     * The idea behind the ranking of the priority queue
+     * is to maintain a sorted queue and update the priority 
+     * of the queue when the deadline of the jobs are pass the 
+     * min and the max of all the jobs. In other words, the 
+     * priorities of the real-time jobs are all relative to 
+     * each other but also has higher priority than normal
+     * processes.
+     */
+     
+    // check if there are any real-time processes
     if(mi == 0 && ma == 0) {
       new_process->prio = 255;
       mi = deadline;
       ma = deadline;
+    // check if the deadline boundaries are extended 
     } else if (deadline < mi || deadline > ma){
       mi = min(deadline, mi);
       ma = max(deadline, ma);
       process_t * temp = ready_queue;
+      
+      // recompute new priorities given new min and max deadlines 
       while(temp && temp->deadline !=0) {
-        float new_prio = (temp->deadline - mi)/1.0;
-        new_prio = new_prio/(ma - mi);
-        new_prio = round(new_prio * (126));
-        temp->prio = 255 - new_prio;
+        temp->prio = calcPrio(temp->deadline);
         temp = temp->next;
-      }
-        float new_prio = (deadline - mi)/1.0;
-        new_prio = new_prio/(ma - mi);
-        new_prio = round(new_prio * (126));
-        new_process->prio = 255 - new_prio;
-
+      }  
+        // compute the priority of the newly added process
+        new_process->prio = calcPrio(deadline); 
     } else {
-        float new_prio = (deadline - mi)/1.0;
-        new_prio = new_prio/(ma - mi);
-        new_prio = round(new_prio * (126));
-        new_process->prio = 255 - new_prio;
+        // compute the priority of the newly added process
+        new_process->prio = calcPrio(deadline); 
     }
     // if there are no current processes 
     if(!ready_queue) {
@@ -399,13 +440,18 @@ int process_create_rtjob (void (*f)(void), int n, unsigned int wcet, unsigned in
     else enqueue_ready(new_process);
      
      process_t * temp = ready_queue;
-     while(temp) {
-      Serial.print(temp->prio);
-      Serial.print(" ");
-      Serial.println(temp->wcet);
-      temp = temp->next;
-     }
-     Serial.println("");
+
+     /* Print out real time processes
+       
+       while(temp) {
+        Serial.print(temp->prio);
+        Serial.print(" ");
+        Serial.println(temp->wcet);
+        temp = temp->next;
+       }
+       Serial.println("");
+       
+     */
     return 0;
 }
 

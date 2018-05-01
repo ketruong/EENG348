@@ -128,14 +128,14 @@ void blink10 (void)
 }
 
 // one locked process
-// Expected behavior: LEDs 8, 9, and 10 blink at their assigned
+// Expected behavior: LEDs 8 and 10 blink at their assigned
 // intervals. Process 1 is not in competition for the lock, so
-// LED 8's blinking pattern is as expected.
+// LED 8's blinking pattern is as expected. LED 9 is starved.
 // This behavior is observed.
 void lock_1 (){
-  process_create (blink1, 32);
-  process_create (blink2, 32);
-  process_create (blink3, 32);
+  process_create_prio(blink1, 32, 200);
+  process_create_prio(blink2, 32, 200);
+  process_create_prio(blink3, 32, 100);
 }
 
 // two locked processes
@@ -144,38 +144,38 @@ void lock_1 (){
 // a pattern of rapid, then slow blinking in LED 8.
 // This behavior is observed.
 void lock_2 (){
-  process_create (blink1, 32);
-  process_create (blink2, 32);
-  process_create (blink3, 32);
-  process_create (blink4, 32);
+  process_create_prio(blink1, 32,128);
+  process_create(blink2, 32);
+  process_create(blink3, 32);
+  process_create_prio(blink4, 32,128);
 }
 
 // three locked proesses.
-// Expected behavior: same as in lock_4, except LEDs
-// 8 and 10 blink simultaneously while 9 and 13 compete
-// for the lock.
-// This behavior is observed.
+// Expected behavior: Only LED 10 blinks since it 
+// is the only real time job and it doesn't terminate
+// 
+// This behavior is observed 
 void lock_3(){
   process_create_rtjob(blink1, 32,200,200);
-  process_create_rtjob(blink2, 32,200,200);
   process_create(blink3, 32);
-  process_create_prio(blink4, 32,128);
+  process_create_prio(blink4, 32,140);
   process_create_prio(blink5, 32,128);
 }
 
 // only locked processes
-// Expected behavior: LEDs 8 and 13 compete for the lock,
-// resulting in a pattern of alternation.
+// Expected behavior: LED 8 competes for the lock,
+// resulting in only LED 8 running since all other 
+// since all other processes are starved.
 // This behavior is observed.
 void lock_4(){
-  process_create_prio (blink1, 32,128);
-  process_create_prio (blink4, 32,128);
-  process_create_prio (blink5, 32,128);
+  process_create_prio(blink1, 32,128);
+  process_create_prio(blink4, 32,130);
+  process_create_prio(blink5, 32,128);
 }
 
 // only unlocked processes
-// Expected behavior: LEDs 9 and 10 blink in tandem without
-// termination.
+// Expected behavior: LEDs 13 blinks in tandem without
+// termination since it has the highest priority
 // This behavior is observed.
 void lock_5(){
   process_create_rtjob(blink2, 32,200,200);
@@ -207,16 +207,20 @@ void lock_7(){
 }
 
 // three terminating processes
-// Expected behavior: LEDs 8, 9, and 10 blink twice, then terminate.
+// Expected behavior: LED 8 blinks twice, 10 blinks twice and 9 
+// blinks once, an they all terminate.
 // This behavior is observed.
 void lock_8(){
   process_create_rtjob(blink6, 32,200,300);
   process_create_rtjob(blink7, 32,200,100);
-  process_create_rtjob(blink8, 32, 200, 200);
+  process_create_rtjob(blink8, 32,200,200);
 }
 
+// Only LED 13  acquired the lock and blinks.
+// The rest starve until blink10 terminates
+// This behaviour is observed.
 void lock_9(){
-  process_create_prio (blink10, 32,128);
+  process_create_rtjob (blink10, 32,129, 129);
   process_create (blink4, 32);
   process_create (blink5, 32);
 }
@@ -231,7 +235,7 @@ void setup() {
   lock_init (&m);
   
   Serial.println("Lock Created Successfully!");
-  lock_8();
+  lock_7();
 }
 
 void loop() {

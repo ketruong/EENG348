@@ -1,0 +1,139 @@
+% vim: set foldmethod=marker:
+\documentclass[12pt]{article}
+%Packages{{{
+\usepackage[margin=1in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb,mathtools}
+\usepackage[makeroom]{cancel}
+\usepackage{textcomp, graphicx, array, listings, soul,xspace} 
+\usepackage{algorithmicx,algorithm, algpseudocode}
+\usepackage[normalem]{ulem}
+\usepackage{stackengine}
+\usepackage{color} %red, green, blue, yellow, cyan, magenta, black, white
+\usepackage{xparse, tikz, tikz-3dplot}
+\usetikzlibrary{matrix,backgrounds, automata, arrows,fit,shapes,calc,positioning,intersections}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.12}
+\pgfdeclarelayer{myback}
+\pgfsetlayers{myback,background,main}\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+\tdplotsetmaincoords{80}{120}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand*\conj[1]{\bar{#1}}
+\tikzset{mycolor/.style = {line width=1bp,color=#1}}%
+\tikzset{myfillcolor/.style = {draw,fill=#1}}%
+\NewDocumentCommand{\highlight}{O{blue!40} m m}{%
+\draw[mycolor=#1] (#2.north west)rectangle (#3.south east);
+}
+\NewDocumentCommand{\fhighlight}{O{blue!40} m m}{%
+\draw[myfillcolor=#1] (#2.north west)rectangle (#3.south east);
+}
+\newcommand*{\eg}{e.g.\@\xspace}
+\newcommand*{\ie}{i.e.\@\xspace}
+
+\makeatletter
+\newcommand*{\etc}{%
+    \@ifnextchar{.}%
+        {etc}%
+        {etc.\@\xspace}%
+}
+\makeatother
+%}}}
+%Environments{{{ 
+\newenvironment{theorem}[2][Theorem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{lemma}[2][Lemma]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{problem}[2][Problem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{claim}[2][Claim]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}%}}}
+\begin{document}
+\title{EENG 348/CPSC338: Digital Systems}
+\author{Kevin Truong \& Rob Brunstad} 
+\maketitle
+\section{Lab 5 Implementation}
+\subsection{Part 1}
+
+For creating processes on the fly, we traverse the ready queue whenever there 
+is a call to ready\_queue and add it to the end of the queue. To free the memory
+associated with the process\_t struct, we free the stack pointer and then the 
+entire struct. 
+% Part 1 Algorithm {{{
+\begin{algorithm}[!h]
+\caption{Memory}
+\begin{algorithmic}[1]
+    \Procedure{Freeing Memory}{}
+    \State{free(process\_t$\rightarrow$sp)}
+    \State{free(process\_t)}
+    \EndProcedure{}
+\end{algorithmic}
+\end{algorithm}
+% }}}
+
+\subsection{Part 2}
+Part 2 was implemented by keeping a shorted queue at all times. Process\_create\_prio()
+was very similar to Procress\_create and only differed by adding a new field 
+called prio into process\_t. 
+% Part 2 Algorithm {{{
+\begin{algorithm}[!h]
+\caption{Create}
+\begin{algorithmic}[1]
+    \Procedure{Process\_Create\_Prio}{}
+        \State{Allocate space for the stack pointer and check if the stack can allocate that much memory}
+        \State{Malloc space for a new process}
+        \State{Set the fields and assign prio to be equal to the input priority}
+    \EndProcedure{}
+\end{algorithmic}
+\end{algorithm}
+% }}}
+It is also important to note the Process\_create() was modified so that by default,
+ordinary processes have priority 128. The queue was sorting in decreasing order using the priority as the key. 
+% Part 2 Algorithm {{{
+\begin{algorithm}[!h]
+\caption{Sorting}
+\begin{algorithmic}[1]
+    \Procedure{Sort Queue in Decreasing Order}{}
+        \If{the tail has greater or equal priority than the new process}
+            \State{Add the procress to the end}
+        \ElsIf{the new procress has higher priority}
+            \State{Add to the beginning of the queue}
+        \Else{}
+            \State{Traverse queue until the new process has higher priority than some process in the queue}
+        \EndIf{}
+    \EndProcedure{}
+\end{algorithmic}
+\end{algorithm}
+% }}}
+
+\subsection{Part 3}
+For the real-time scheduling queue, we assigned the real-time task a priority between
+129 and 255, since normal tasks have a priority of 128. We kept track of the shortest deadline and 
+the longest deadline and we updated the deadlines of all the real-time tasks if either
+the shortest or the longest deadlines change. This maintained the decreasing order
+in the queue. To keep track of wrong worst case execution estimated, we kept track of 
+the duration of the long each process ran. 
+
+% Part 3 Algorithm {{{
+\begin{algorithm}[!h]
+\caption{Real-Time}
+\begin{algorithmic}[1]
+    \Procedure{Real-time Scheduling}{}
+     \If{no real time tasks have been scheduled yet} 
+        \State{new\_process$\rightarrow$prio = 255}
+        \State{shortest deadline = deadline}
+        \State{longest deadline = deadline}
+    \ElsIf{there is a new process with a shorter or longer deadline} 
+        \State{Recompute shortest and longest deadlines}
+        \State{Recompute priority for all real-time jobs}
+    \Else{}
+        \State{Calculate priority with given shortest and longest deadlines}
+    \EndIf{}
+    \EndProcedure{}
+\end{algorithmic}
+\end{algorithm}
+% }}}
+
+\end{document}

@@ -15,6 +15,3 @@ Snake is a classic arcade game in which a player maneuvers his or her "snake" ar
 ## Presentation
 ![Presentation](presentation.png)
 
-## Acknowledgements
-
-Thanks to Professor Rajit Manohar for the awesome class!

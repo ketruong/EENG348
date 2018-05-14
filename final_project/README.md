@@ -13,5 +13,5 @@ Snake is a classic arcade game in which a player maneuvers his or her "snake" ar
 * 2.1mm Barrel Jack to Screw Terminal Block
 
 ## Presentation
-![Presentation](presentation.jpg)
+![Presentation](presentation.png)
 
